@@ -29,6 +29,8 @@
     "@nestjs/microservices": "^9.0.8",
     "@nestjs/platform-express": "^9.0.0",
     "@nestjs/typeorm": "^9.0.0",
+    "amqp-connection-manager": "^4.1.4",
+    "amqplib": "^0.10.1",
     "mysql2": "^2.3.3",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
