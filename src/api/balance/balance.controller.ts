@@ -23,6 +23,11 @@ export class BalanceController {
     return this.balanceService.findOne(id);
   }
 
+  @MessagePattern('findOneUserIdBalance')
+  findOneByUserId(@Payload() id: number): Promise<Balance> {
+    return this.balanceService.findOne(id);
+  }
+
   @MessagePattern('updateBalance')
   update(@Payload() payload) {
     return this.balanceService.update(payload.id, payload.updateBalanceDto);
