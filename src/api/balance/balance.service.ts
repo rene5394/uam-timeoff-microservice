@@ -24,6 +24,10 @@ export class BalanceService {
     return await this.balanceRepository.findOne({ where: { id: id } });
   }
 
+  async findOneByUserId(userId: number): Promise<Balance> {
+    return await this.balanceRepository.findOne({ where: { userId: userId } });
+  }
+
   update(id: number, updateBalanceDto: UpdateBalanceDto) {
     return `This action updates a #${id} balance`;
   }
