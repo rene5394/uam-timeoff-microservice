@@ -24,8 +24,8 @@ export class BalanceController {
   }
 
   @MessagePattern('findOneUserIdBalance')
-  findOneByUserId(@Payload() id: number): Promise<Balance> {
-    return this.balanceService.findOne(id);
+  findOneByUserId(@Payload() userId: number): Promise<Balance> {
+    return this.balanceService.findOneByUserId(userId);
   }
 
   @MessagePattern('updateBalance')
