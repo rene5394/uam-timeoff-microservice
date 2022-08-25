@@ -11,7 +11,7 @@ import { BalanceModule } from './api/balance/balance.module';
       host: process.env.DATABASE_HOST || 'localhost',
       port: parseInt(process.env.DATABASE_PORT) || 3306,
       username  : process.env.DATABASE_USERNAME || 'root',
-      password  : process.env.DATABASE_PASSWORD || 'password',
+      password  : process.env.DATABASE_PASSWORD || '',
       database: process.env.DATABASE || 'timeoff',
       entities: [],
       autoLoadEntities: true,
