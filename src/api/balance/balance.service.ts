@@ -55,7 +55,7 @@ export class BalanceService {
       totalCompDays = balance.compDays - compDays;
     }
 
-    return { comDays: totalCompDays, vacationDays: balance.vacationDays };
+    return { compDays: totalCompDays, vacationDays: balance.vacationDays };
   }
 
   async validateVacationsUpdate(id: number, operation: number, vacationDays: number): Promise<any> {
