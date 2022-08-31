@@ -8,6 +8,7 @@ async function bootstrap() {
   for (const queue of [
     RabbitMQ.BalanceQueue, 
     RabbitMQ.BalanceTransactionQueue,
+    RabbitMQ.RequestQueue,
     RabbitMQ.StatusQueue,
     RabbitMQ.TypeQueue
   ]) {
