@@ -8,12 +8,12 @@ export class TypeController {
   constructor(private readonly typeService: TypeService) {}
 
   @MessagePattern('findAllType')
-  findAll() {
+  findAll(): Promise<Type[]> {
     return this.typeService.findAll();
   }
 
   @MessagePattern('findOneType')
-  findOne(@Payload() id: number) {
+  findOne(@Payload() id: number): Promise<Type> {
     return this.typeService.findOne(id);
   }
 }
