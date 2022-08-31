@@ -1,4 +1,6 @@
 export enum RabbitMQ {
     BalanceQueue = 'timeoffBalance',
-    BalanceTransactionQueue = 'timeoffBalanceTransaction'
+    BalanceTransactionQueue = 'timeoffBalanceTransaction',
+    StatusQueue = 'timeoffStatus',
+    TypeQueue = 'timeoffType',
 }
