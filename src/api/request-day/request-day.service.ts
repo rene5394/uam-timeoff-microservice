@@ -1,26 +1,61 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateRequestDayDto } from './dto/create-request-day.dto';
-import { UpdateRequestDayDto } from './dto/update-request-day.dto';
+import { RequestDay } from './entities/request-day.entity';
 
 @Injectable()
 export class RequestDayService {
-  create(createRequestDayDto: CreateRequestDayDto) {
-    return 'This action adds a new requestDay';
+  constructor(
+    @InjectRepository(RequestDay)
+    private readonly requestDayRepository: Repository<RequestDay>
+  ) {}
+
+  async create(createRequestDayDto: CreateRequestDayDto): Promise<RequestDay> {
+    return await this.requestDayRepository.save(createRequestDayDto);
   }
 
-  findAll() {
-    return `This action returns all requestDay`;
+  async countByRequestId(requestId: number): Promise<number> {
+    return await this.requestDayRepository.count({ where: { requestId } });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} requestDay`;
+  async countByDay(day: Date): Promise<number> {
+    return await this.requestDayRepository.count({ where: { day } });
   }
 
-  update(id: number, updateRequestDayDto: UpdateRequestDayDto) {
-    return `This action updates a #${id} requestDay`;
+  async countByDays(dates: Date[]): Promise<number[]> {
+    let numberOfRequest = [];
+
+    await Promise.all(
+      dates.map( async(date: Date) => {
+        const day = new Date(date);
+  
+        let number = await this.requestDayRepository.count({ where: { day } });
+  
+        numberOfRequest.push(number);
+      })
+    );
+
+    return numberOfRequest;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} requestDay`;
+  async countByDaysNoAdmin(dates: Date[]): Promise<number[]> {
+    let numberOfRequest = [];
+
+    await Promise.all(
+      dates.map( async(date: Date) => {
+        const day = new Date(date);
+  
+        let number = await this.requestDayRepository.count({ where: { day, admin: 0 } });
+  
+        numberOfRequest.push(number);
+      })
+    );
+
+    return numberOfRequest;
+  }
+
+  async delete(id: number) {
+    return await this.requestDayRepository.delete({ requestId: id });
   }
 }
