@@ -1,26 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { CreateTypeDto } from './dto/create-type.dto';
-import { UpdateTypeDto } from './dto/update-type.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Type } from './entities/type.entity';
 
 @Injectable()
 export class TypeService {
-  create(createTypeDto: CreateTypeDto) {
-    return 'This action adds a new type';
+  constructor(
+    @InjectRepository(Type)
+    private readonly typeRepository: Repository<Type>
+  ) {}
+
+  async findAll(): Promise<Type[]> {
+    return await this.typeRepository.find();
   }
 
-  findAll() {
-    return `This action returns all type`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} type`;
-  }
-
-  update(id: number, updateTypeDto: UpdateTypeDto) {
-    return `This action updates a #${id} type`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} type`;
+  async findOne(id: number): Promise<Type> {
+    return await this.typeRepository.findOne({ where: { id: id } });
   }
 }
