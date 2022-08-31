@@ -6,11 +6,11 @@ export class Balance {
   id: number;
 
   @Column({ type: 'smallint', nullable: false })
-  userId: number
+  userId: number;
 
   @Column({ type: 'tinyint', nullable: false })
-  compDays: number
+  compDays: number;
   
   @Column({ type: 'tinyint', nullable: false })
-  vacationDays: number
+  vacationDays: number;
 }
