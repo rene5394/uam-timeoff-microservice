@@ -6,6 +6,8 @@ import { BalanceTransactionModule } from './api/balance-transaction/balance-tran
 import { DataSource } from 'typeorm';
 import { StatusModule } from './api/status/status.module';
 import { TypeModule } from './api/type/type.module';
+import { RequestModule } from './api/request/request.module';
+import { RequestDayModule } from './api/request-day/request-day.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { TypeModule } from './api/type/type.module';
     BalanceModule,
     BalanceTransactionModule,
     StatusModule,
+    RequestModule,
+    RequestDayModule,
     TypeModule
   ],
 })
