@@ -4,6 +4,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { BalanceModule } from './api/balance/balance.module';
 import { BalanceTransactionModule } from './api/balance-transaction/balance-transaction.module';
 import { DataSource } from 'typeorm';
+import { StatusModule } from './api/status/status.module';
+import { TypeModule } from './api/type/type.module';
 
 @Module({
   imports: [
@@ -20,7 +22,9 @@ import { DataSource } from 'typeorm';
       synchronize: false
     }),
     BalanceModule,
-    BalanceTransactionModule
+    BalanceTransactionModule,
+    StatusModule,
+    TypeModule
   ],
 })
 export class AppModule {
