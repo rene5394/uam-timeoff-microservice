@@ -10,6 +10,8 @@ async function bootstrap() {
     RabbitMQ.BalanceTransactionQueue,
     RabbitMQ.RequestQueue,
     RabbitMQ.StatusQueue,
+    RabbitMQ.TransactionQueue,
+    RabbitMQ.TransactionStatusQueue,
     RabbitMQ.TypeQueue
   ]) {
     app.connectMicroservice({

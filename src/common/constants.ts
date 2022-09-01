@@ -3,6 +3,8 @@ export enum RabbitMQ {
     BalanceTransactionQueue = 'timeoffBalanceTransaction',
     RequestQueue = 'timeoffRequest',
     StatusQueue = 'timeoffStatus',
+    TransactionQueue = 'timeoffTransaction',
+    TransactionStatusQueue = 'timeoffTransactionStatus',
     TypeQueue = 'timeoffType',
 }
 
