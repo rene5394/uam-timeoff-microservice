@@ -8,6 +8,8 @@ import { StatusModule } from './api/status/status.module';
 import { TypeModule } from './api/type/type.module';
 import { RequestModule } from './api/request/request.module';
 import { RequestDayModule } from './api/request-day/request-day.module';
+import { TransactionModule } from './api/transaction/transaction.module';
+import { TransactionStatusModule } from './api/transaction-status/transaction-status.module';
 
 @Module({
   imports: [
@@ -28,7 +30,9 @@ import { RequestDayModule } from './api/request-day/request-day.module';
     StatusModule,
     RequestModule,
     RequestDayModule,
-    TypeModule
+    TypeModule,
+    TransactionModule,
+    TransactionStatusModule
   ],
 })
 export class AppModule {
