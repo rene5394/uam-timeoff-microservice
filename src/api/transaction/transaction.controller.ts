@@ -9,7 +9,7 @@ export class TransactionController {
 
   @MessagePattern('createTransaction')
   create(@Payload() createTransactionDto: CreateTransactionDto) {
-    return this.transactionService.create(createTransactionDto);
+    return this.transactionService.create(1, 1, createTransactionDto);
   }
 
   @MessagePattern('findAllTransaction')

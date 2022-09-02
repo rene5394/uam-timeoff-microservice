@@ -4,7 +4,6 @@ import { DataSource ,Repository } from 'typeorm';
 import { BalanceService } from '../balance/balance.service';
 import { BalanceType } from '../../common/enums/balanceType.enum';
 import { CreateBalanceTransactionDto } from './dto/create-balance-transaction.dto';
-import { UpdateBalanceTransactionDto } from './dto/update-balance-transaction.dto';
 import { UpdateBalanceDto } from '../balance/dto/update-balance.dto';
 import { BalanceTransaction } from './entities/balance-transaction.entity';
 import { Balance } from '../balance/entities/balance.entity';
@@ -75,7 +74,7 @@ export class BalanceTransactionService {
     return await this.balanceTransactionRepository.findOne({ where: { id: id } });
   }
 
-  update(id: number, updateBalanceTransactionDto: UpdateBalanceTransactionDto) {
+  update(id: number) {
     return `This action updates a #${id} balanceTransaction`;
   }
 

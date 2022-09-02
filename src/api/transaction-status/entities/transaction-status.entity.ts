@@ -1,6 +1,6 @@
 import {  Column, Entity, PrimaryColumn } from 'typeorm';
 
-@Entity('transaction-statuses')
+@Entity('transactionStatuses')
 export class TransactionStatus {
     @PrimaryColumn({ type: 'tinyint', nullable: false })
     id: number;

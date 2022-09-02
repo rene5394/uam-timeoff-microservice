@@ -1,15 +1,13 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, DataSource, Repository } from 'typeorm';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { Role } from '../../common/enums/role.enum';
 import { TransactionStatus } from 'src/common/enums/transactionStatus.enum';
 import { Transaction } from './entities/transaction.entity';
-import { BadRequestException } from '../../common/exceptions/bad-request.exception';
 import { Hr } from '../../common/enums/hr.enum';
 import { UpdateRequestDto } from '../request/dto/update-request.dto';
 import { RequestStatus } from '../../common/enums/requestStatus.enum';
-import { InternalServerException } from 'src/common/exceptions/internal-sever.exception';
 import { RequestService } from '../request/request.service';
 import { Request } from '../request/entities/request.entity';
 import { RequestDayService } from '../request-day/request-day.service';
@@ -81,8 +79,12 @@ export class TransactionService {
     } catch (err) {
       await queryRunner.rollbackTransaction();
 
-      throw new InternalServerException('Error executing create transaction SQL transaction');
+      throw new HttpException('Error executing create transaction SQL transaction', HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  async findAll(): Promise<Transaction[]> {
+    return await this.transactionRepository.find();
   }
   
   async findAllByUserId(userId: number): Promise<Transaction[]> {
@@ -132,7 +134,7 @@ export class TransactionService {
         return { updateRequestDTO, updateBalance: false };
       }
 
-      throw new BadRequestException('Unauthorized to make this transaction');
+      throw new HttpException('Unauthorized to make this transaction', HttpStatus.BAD_REQUEST);
     }
     if (transactionStatusId === TransactionStatus.approvedByHR) {
       if (hr === Hr.is &&
@@ -144,7 +146,7 @@ export class TransactionService {
         return { updateRequestDTO, updateBalance: false };
       }
 
-      throw new BadRequestException('Unauthorized to make this transaction');
+      throw new HttpException('Unauthorized to make this transaction', HttpStatus.BAD_REQUEST);
     }
     if (transactionStatusId === TransactionStatus.deniedByCoach) {
       if ((roleId === Role.coach || roleId === Role.jrCoach) &&
@@ -154,7 +156,7 @@ export class TransactionService {
         return { updateRequestDTO, updateBalance: true };
       }
 
-      throw new BadRequestException('Unauthorized to make this transaction');
+      throw new HttpException('Unauthorized to make this transaction', HttpStatus.BAD_REQUEST);
     }
     if (transactionStatusId === TransactionStatus.deniedByHR) {
       if (hr === Hr.is &&
@@ -165,7 +167,7 @@ export class TransactionService {
         return { updateRequestDTO, updateBalance: true };
       }
 
-      throw new BadRequestException('Unauthorized to make this transaction');
+      throw new HttpException('Unauthorized to make this transaction', HttpStatus.BAD_REQUEST);
     }
     if (transactionStatusId === TransactionStatus.cancelledByHR) {
       if (hr === Hr.is &&
@@ -175,9 +177,9 @@ export class TransactionService {
         return { updateRequestDTO, updateBalance: true };
       }
 
-      throw new BadRequestException('Unauthorized to make this transaction');
+      throw new HttpException('Unauthorized to make this transaction', HttpStatus.BAD_REQUEST);
     }
 
-    throw new BadRequestException('Unauthorized to make this transaction');
+    throw new HttpException('Unauthorized to make this transaction', HttpStatus.BAD_REQUEST);
   }
 }
