@@ -1,10 +1,12 @@
 export function daysBetweenDates(startDate: Date, endDate: Date): Date[] {
   let dates = [];
+  const copyStartDate = new Date(startDate.getTime());
+  
 
-  while (endDate >= startDate) {
-    dates.push(startDate);
+  while (endDate >= copyStartDate) {
+    dates.push(copyStartDate);
 
-    startDate.setDate(startDate.getDate() + 1);
+    copyStartDate.setDate(copyStartDate.getDate() + 1);
   }
 
   return dates;
@@ -12,14 +14,15 @@ export function daysBetweenDates(startDate: Date, endDate: Date): Date[] {
   
 export function daysBetweenDatesNoWeekends(startDate: Date, endDate: Date): Date[] {
   let dates = [];
+  const copyStartDate = new Date(startDate.getTime());
 
-  while (endDate >= startDate) {
-    if (startDate.getDay() !== 5 && startDate.getDay() !== 6) {
-      const date = new Date(startDate);
+  while (endDate >= copyStartDate) {
+    if (copyStartDate.getDay() !== 5 && copyStartDate.getDay() !== 6) {
+      const date = new Date(copyStartDate);
       dates.push(date);
     }
 
-    startDate.setDate(startDate.getDate() + 1);
+    copyStartDate.setDate(copyStartDate.getDate() + 1);
   }
 
   return dates;
@@ -32,13 +35,14 @@ export function diffrenceBetweenDates(startDate: Date, endDate: Date) {
   
 export function diffrenceBetweenDatesNoWeekends(startDate: Date, endDate: Date) {
   let weekdays = 0;
+  const copyStartDate = new Date(startDate.getTime());
 
-  while (endDate >= startDate) {
-    if (startDate.getDay() !== 5 && startDate.getDay() !== 6) {
+  while (endDate >= copyStartDate) {
+    if (copyStartDate.getDay() !== 5 && copyStartDate.getDay() !== 6) {
       weekdays++;
   }
 
-  startDate.setDate(startDate.getDate() + 1);
+  copyStartDate.setDate(copyStartDate.getDate() + 1);
 }
 
   return weekdays;
