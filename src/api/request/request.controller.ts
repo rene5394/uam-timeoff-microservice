@@ -15,7 +15,6 @@ export class RequestController {
 
   @MessagePattern('createUserIdRequest')
   createByUserId(@Payload() createRequestDto: CreateRequestDto) {
-    console.log("createByUserId CALLED");
     return this.requestService.createByUser(createRequestDto);
   }
 
