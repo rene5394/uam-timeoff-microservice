@@ -9,6 +9,7 @@ import { BalanceModule } from '../balance/balance.module';
 @Module({
   imports: [TypeOrmModule.forFeature([Request]), BalanceModule, RequestDayModule],
   controllers: [RequestController],
-  providers: [RequestService]
+  providers: [RequestService],
+  exports: [RequestService]
 })
 export class RequestModule {}
