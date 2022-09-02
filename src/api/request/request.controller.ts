@@ -13,6 +13,12 @@ export class RequestController {
     return this.requestService.create(createRequestDto);
   }
 
+  @MessagePattern('createUserIdRequest')
+  createByUserId(@Payload() createRequestDto: CreateRequestDto) {
+    console.log("createByUserId CALLED");
+    return this.requestService.createByUser(createRequestDto);
+  }
+
   @MessagePattern('findAllRequest')
   findAll() {
     return this.requestService.findAll();

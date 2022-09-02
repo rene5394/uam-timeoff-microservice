@@ -4,4 +4,5 @@ export class CreateRequestDto {
   typeId: number;
   startDate: Date;
   endDate: Date;
+  roleId: number;
 }

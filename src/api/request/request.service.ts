@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DaysAfterRequest, MaxDaysRequested, MaxRequestsByDay } from '../../common/constants';
 import { DataSource, Repository } from 'typeorm';
@@ -32,15 +32,16 @@ export class RequestService {
     return await this.requestRepository.save(createRequestDto);
   }
 
-  async createByUser(createRequestDto: CreateRequestDto, roleId: number): Promise<Request> {
-    const { userId, typeId, startDate, endDate } = createRequestDto;
+  async createByUser(createRequestDto: CreateRequestDto): Promise<Request> {    
+    const { userId, typeId, startDate, endDate, roleId } = createRequestDto;
     const startDateFormatted = new Date(startDate);
     const endDateFormatted = new Date(endDate);
     startDateFormatted.setUTCHours(0, 0, 0, 0);
-    endDate.setUTCHours(23, 59, 59, 999);
+    endDateFormatted.setUTCHours(23, 59, 59, 999);
 
     const balance = await this.balanceService.findOneByUserId(userId);
     const isAdmin = (roleId === Role.admin) ? 1 : 0;
+    
     const { updateBalanceDto, daysRequested } = (roleId === Role.admin) ?
     await this.validateCreateByUserAdmin(balance, typeId, startDateFormatted, endDateFormatted):
     await this.validateCreateByUser(balance, typeId, startDateFormatted, endDateFormatted);
@@ -67,7 +68,7 @@ export class RequestService {
     } catch (err) {
       await queryRunner.rollbackTransaction();
       
-      throw new InternalServerException('Error executing create request SQL transaction');
+      throw new HttpException('Error executing create request SQL transaction', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -107,14 +108,14 @@ export class RequestService {
       });
       
       if (numberDaysRequested > MaxDaysRequested.compDays) {
-        throw new BadRequestException(`Amount of comp days must not be greater than ${MaxDaysRequested.compDays}`);
+        throw new HttpException(`Amount of comp days must not be greater than ${MaxDaysRequested.compDays}`, HttpStatus.BAD_REQUEST);
       }
       if (daysAfterToday < DaysAfterRequest.minDaysCompDays ||
         startDate > maxDateAfter) {
-        throw new BadRequestException(`Comp days should be requested ${DaysAfterRequest.minDaysCompDays} days before and no more than ${DaysAfterRequest.maxMonths} months later`);
+        throw new HttpException(`Comp days should be requested ${DaysAfterRequest.minDaysCompDays} days before and no more than ${DaysAfterRequest.maxMonths} months later`, HttpStatus.BAD_REQUEST);
       }
       if (overDaysLimit) {
-        throw new BadRequestException(`There are mote than ${MaxRequestsByDay.compDays} requests in one day of your request`);
+        throw new HttpException(`There are more than ${MaxRequestsByDay.compDays} requests in one day of your request`, HttpStatus.BAD_REQUEST);
       }
 
       const updateBalanceDto = await this.balanceService.validateCompDaysUpdate(
@@ -124,7 +125,7 @@ export class RequestService {
       );
 
       if (updateBalanceDto.error) {
-        throw new BadRequestException(updateBalanceDto.error);
+        throw new HttpException(updateBalanceDto.error, HttpStatus.BAD_REQUEST);
       }
 
       return { updateBalanceDto, daysRequested };
@@ -140,15 +141,15 @@ export class RequestService {
       });
 
       if (numberDaysRequested > MaxDaysRequested.vacations) {
-        throw new BadRequestException(`Amount of vacations must not be greater than ${MaxDaysRequested.vacations}`);
+        throw new HttpException(`Amount of vacations must not be greater than ${MaxDaysRequested.vacations}`, HttpStatus.BAD_REQUEST);
       }
       if (daysAfterToday < DaysAfterRequest.minDaysVacations ||
         startDate > maxDateAfter) {
-        throw new BadRequestException(`Comp days should be requested ${DaysAfterRequest.minDaysVacations} days before
-        days before and no more than ${DaysAfterRequest.maxMonths} months later`);
+        throw new HttpException(`Comp days should be requested ${DaysAfterRequest.minDaysVacations} days before
+        days before and no more than ${DaysAfterRequest.maxMonths} months later`, HttpStatus.BAD_REQUEST);
       }
       if (overDaysLimit) {
-        throw new BadRequestException(`There are mote than ${MaxRequestsByDay.vacations} requests in one day of your request`);
+        throw new HttpException(`There are mote than ${MaxRequestsByDay.vacations} requests in one day of your request`, HttpStatus.BAD_REQUEST);
       }
       
       const updateBalanceDto = await this.balanceService.validateVacationsUpdate(
@@ -158,32 +159,32 @@ export class RequestService {
       );
 
       if (updateBalanceDto.error) {
-        throw new BadRequestException(updateBalanceDto.error);
+        throw new HttpException(updateBalanceDto.error, HttpStatus.BAD_REQUEST);
       }
 
       return { updateBalanceDto, daysRequested};
     }
 
-    throw new BadRequestException('Request type is not valid');
+    throw new HttpException('Request type is not valid', HttpStatus.BAD_REQUEST);
   }
 
   async validateCreateByUserAdmin(balance: Balance, typeId: number, startDate: Date, endDate: Date): Promise<any> {
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
     const maxDateAfter = new Date(today);
-    maxDateAfter.setMonth(maxDateAfter.getMonth() + DaysAfterRequest.maxMonths);
-        
+    maxDateAfter.setMonth(maxDateAfter.getMonth() + DaysAfterRequest.maxMonths);    
+
     if (typeId === RequestType.compDay) {
       const daysRequested = daysBetweenDatesNoWeekends(startDate, endDate);
       const numberDaysRequested = daysRequested.length;
-      const daysBeforeRequest = diffrenceBetweenDates(today, startDate);
+      const daysAfterToday = diffrenceBetweenDates(today, startDate);
 
       if (numberDaysRequested > MaxDaysRequested.compDays) {
-        throw new BadRequestException(`Amount of comp days must not be greater than ${MaxDaysRequested.compDays}`);
+        throw new HttpException(`Amount of comp days must not be greater than ${MaxDaysRequested.compDays}`, HttpStatus.BAD_REQUEST);
       }
-      if (daysBeforeRequest < DaysAfterRequest.minDaysCompDays ||
+      if (daysAfterToday < DaysAfterRequest.minDaysCompDays ||
         startDate > maxDateAfter) {
-        throw new BadRequestException(`Comp days should be requested ${DaysAfterRequest.minDaysCompDays} before`);
+        throw new HttpException(`Comp days should be requested ${DaysAfterRequest.minDaysCompDays} before`, HttpStatus.BAD_REQUEST);
       }
 
       const updateBalanceDto = await this.balanceService.validateCompDaysUpdate(
@@ -193,7 +194,7 @@ export class RequestService {
       );
 
       if (updateBalanceDto.error) {
-        throw new BadRequestException(updateBalanceDto.error);
+        throw new HttpException(updateBalanceDto.error, HttpStatus.BAD_REQUEST);
       }
 
       return { updateBalanceDto, daysRequested };
@@ -202,13 +203,13 @@ export class RequestService {
     if (typeId === RequestType.vacation) {
       const daysRequested = daysBetweenDates(startDate, endDate);
       const numberDaysRequested = daysRequested.length;
-      const daysBeforeRequest = diffrenceBetweenDates(today, startDate);
-
+      const daysAfterToday = diffrenceBetweenDates(today, startDate);
+      
       if (numberDaysRequested > MaxDaysRequested.vacations) {
-        throw new BadRequestException(`Amount of vacations must not be greater than ${MaxDaysRequested.vacations}`);
+        throw new HttpException(`Amount of vacations must not be greater than ${MaxDaysRequested.vacations}`, HttpStatus.BAD_REQUEST);
       }
-      if (daysBeforeRequest < DaysAfterRequest.minDaysVacations) {
-        throw new BadRequestException(`Comp days should be requested ${DaysAfterRequest.minDaysVacations} before`);
+      if (daysAfterToday < DaysAfterRequest.minDaysVacations) {
+        throw new HttpException(`Comp days should be requested ${DaysAfterRequest.minDaysVacations} before`, HttpStatus.BAD_REQUEST);
       }
       
       const updateBalanceDto = await this.balanceService.validateVacationsUpdate(
@@ -218,12 +219,12 @@ export class RequestService {
       );
 
       if (updateBalanceDto.error) {
-        throw new BadRequestException(updateBalanceDto.error);
+        throw new HttpException(updateBalanceDto.error, HttpStatus.BAD_REQUEST);
       }
 
       return { updateBalanceDto, daysRequested};
     }
 
-    throw new BadRequestException('Request type is not valid');
+    throw new HttpException('Request type is not valid', HttpStatus.BAD_REQUEST);
   }
 }
