@@ -15,6 +15,7 @@ import { RequestDay } from '../request-day/entities/request-day.entity';
 import { Role } from '../../common/enums/role.enum';
 import { Transaction } from '../transaction/entities/transaction.entity';
 import { TransactionStatus } from 'src/common/enums/transactionStatus.enum';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class RequestService {
@@ -108,13 +109,16 @@ export class RequestService {
       });
       
       if (numberDaysRequested > MaxDaysRequested.compDays) {
+        throw new RpcException('Invalid request');
         throw new HttpException(`Amount of comp days must not be greater than ${MaxDaysRequested.compDays}`, HttpStatus.BAD_REQUEST);
       }
       if (daysAfterToday < DaysAfterRequest.minDaysCompDays ||
         startDate > maxDateAfter) {
+          throw new RpcException('Invalid request');
         throw new HttpException(`Comp days should be requested ${DaysAfterRequest.minDaysCompDays} days before and no more than ${DaysAfterRequest.maxMonths} months later`, HttpStatus.BAD_REQUEST);
       }
       if (overDaysLimit) {
+        throw new RpcException('Invalid request');
         throw new HttpException(`There are more than ${MaxRequestsByDay.compDays} requests in one day of your request`, HttpStatus.BAD_REQUEST);
       }
 
@@ -145,7 +149,7 @@ export class RequestService {
       }
       if (daysAfterToday < DaysAfterRequest.minDaysVacations ||
         startDate > maxDateAfter) {
-        throw new HttpException(`Comp days should be requested ${DaysAfterRequest.minDaysVacations} days before
+        throw new HttpException(`Vacations should be requested ${DaysAfterRequest.minDaysVacations} days before
         days before and no more than ${DaysAfterRequest.maxMonths} months later`, HttpStatus.BAD_REQUEST);
       }
       if (overDaysLimit) {
@@ -180,6 +184,7 @@ export class RequestService {
       const daysAfterToday = diffrenceBetweenDates(today, startDate);
 
       if (numberDaysRequested > MaxDaysRequested.compDays) {
+        throw new RpcException('Invalid request');
         throw new HttpException(`Amount of comp days must not be greater than ${MaxDaysRequested.compDays}`, HttpStatus.BAD_REQUEST);
       }
       if (daysAfterToday < DaysAfterRequest.minDaysCompDays ||
