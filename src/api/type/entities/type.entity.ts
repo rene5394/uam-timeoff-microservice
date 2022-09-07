@@ -7,6 +7,9 @@ export class Type {
 
   @Column({ type: 'varchar', nullable: false })
   name: string;
+
+  @Column({ type: 'tinyint', nullable: false })
+  app: number;
   
   @Column({ type: 'datetime' })
   createdAt: Date;
