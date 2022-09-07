@@ -16,6 +16,7 @@ import { Role } from '../../common/enums/role.enum';
 import { Transaction } from '../transaction/entities/transaction.entity';
 import { TransactionStatus } from 'src/common/enums/transactionStatus.enum';
 import { RpcException } from '@nestjs/microservices';
+import { RequestStatus } from 'src/common/enums/requestStatus.enum';
 
 @Injectable()
 export class RequestService {
@@ -77,7 +78,20 @@ export class RequestService {
    return await this.requestRepository.find();
   }
 
-  async findAllByUserId(userId: number): Promise<Request[]> {
+  async findAllByUserId(userId: number, status: string): Promise<Request[]> {
+    const keys = Object.keys(RequestStatus);
+    let statusId = 0;
+
+    Object.keys(RequestStatus).forEach(key => {
+      if (key === status) {
+        statusId = RequestStatus[key];
+      }
+    });
+
+    if (statusId) {
+      return await this.requestRepository.find({ where : { statusId} });
+    }
+
     return await this.requestRepository.find({ where: { userId }});
   }
 

@@ -24,8 +24,10 @@ export class RequestController {
   }
 
   @MessagePattern('findAllUserIdRequest')
-  findAllByUserId(@Payload() userId: number) {
-    return this.requestService.findAllByUserId(userId);
+  findAllByUserId(@Payload() findParams: any) {
+    const { userId, status } = findParams;
+
+    return this.requestService.findAllByUserId(userId, status);
   }  
 
   @MessagePattern('findOneRequest')
