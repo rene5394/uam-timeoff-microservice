@@ -8,8 +8,8 @@ export class TypeController {
   constructor(private readonly typeService: TypeService) {}
 
   @MessagePattern('findAllType')
-  findAll(): Promise<Type[]> {
-    return this.typeService.findAll();
+  findAll(@Payload() app: string): Promise<Type[]> {
+    return this.typeService.findAll(app);
   }
 
   @MessagePattern('findOneType')
