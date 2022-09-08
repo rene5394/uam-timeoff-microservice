@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DaysAfterRequest, MaxDaysRequested, MaxRequestsByDay } from '../../common/constants';
 import { DataSource, Repository } from 'typeorm';
@@ -15,8 +15,8 @@ import { RequestDay } from '../request-day/entities/request-day.entity';
 import { Role } from '../../common/enums/role.enum';
 import { Transaction } from '../transaction/entities/transaction.entity';
 import { TransactionStatus } from 'src/common/enums/transactionStatus.enum';
-import { RpcException } from '@nestjs/microservices';
 import { RequestStatus } from 'src/common/enums/requestStatus.enum';
+import { CustomRpcException } from 'src/common/exception/custom-rpc.exception';
 
 @Injectable()
 export class RequestService {
@@ -70,7 +70,8 @@ export class RequestService {
     } catch (err) {
       await queryRunner.rollbackTransaction();
       
-      throw new HttpException('Error executing create request SQL transaction', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new CustomRpcException('Error executing create request SQL transaction'
+      , HttpStatus.INTERNAL_SERVER_ERROR, 'Internal Server Error');
     }
   }
 
@@ -123,17 +124,17 @@ export class RequestService {
       });
       
       if (numberDaysRequested > MaxDaysRequested.compDays) {
-        throw new RpcException('Invalid request');
-        throw new HttpException(`Amount of comp days must not be greater than ${MaxDaysRequested.compDays}`, HttpStatus.BAD_REQUEST);
+        throw new CustomRpcException(`Amount of comp days must not be greater than ${MaxDaysRequested.compDays}`, 
+        HttpStatus.BAD_REQUEST, 'Bad Request');
       }
       if (daysAfterToday < DaysAfterRequest.minDaysCompDays ||
         startDate > maxDateAfter) {
-          throw new RpcException('Invalid request');
-        throw new HttpException(`Comp days should be requested ${DaysAfterRequest.minDaysCompDays} days before and no more than ${DaysAfterRequest.maxMonths} months later`, HttpStatus.BAD_REQUEST);
+          throw new CustomRpcException(`Comp days should be requested ${DaysAfterRequest.minDaysCompDays} 
+          days before and no more than ${DaysAfterRequest.maxMonths} months later`, HttpStatus.BAD_REQUEST, 'Bad Request');
       }
       if (overDaysLimit) {
-        throw new RpcException('Invalid request');
-        throw new HttpException(`There are more than ${MaxRequestsByDay.compDays} requests in one day of your request`, HttpStatus.BAD_REQUEST);
+        throw new CustomRpcException(`There are more than ${MaxRequestsByDay.compDays} requests in one day of your request`, 
+        HttpStatus.BAD_REQUEST, 'Bad Request');
       }
 
       const updateBalanceDto = await this.balanceService.validateCompDaysUpdate(
@@ -143,7 +144,7 @@ export class RequestService {
       );
 
       if (updateBalanceDto.error) {
-        throw new HttpException(updateBalanceDto.error, HttpStatus.BAD_REQUEST);
+        throw new CustomRpcException(updateBalanceDto.error, HttpStatus.BAD_REQUEST, 'Bad Request');
       }
 
       return { updateBalanceDto, daysRequested };
@@ -159,15 +160,17 @@ export class RequestService {
       });
 
       if (numberDaysRequested > MaxDaysRequested.vacations) {
-        throw new HttpException(`Amount of vacations must not be greater than ${MaxDaysRequested.vacations}`, HttpStatus.BAD_REQUEST);
+        throw new CustomRpcException(`Amount of vacations must not be greater than ${MaxDaysRequested.vacations}`, 
+        HttpStatus.BAD_REQUEST, 'Bad Request');
       }
       if (daysAfterToday < DaysAfterRequest.minDaysVacations ||
         startDate > maxDateAfter) {
-        throw new HttpException(`Vacations should be requested ${DaysAfterRequest.minDaysVacations} days before
-        days before and no more than ${DaysAfterRequest.maxMonths} months later`, HttpStatus.BAD_REQUEST);
+          throw new CustomRpcException(`Vacations should be requested ${DaysAfterRequest.minDaysVacations} days before
+          days before and no more than ${DaysAfterRequest.maxMonths} months later`, HttpStatus.BAD_REQUEST, 'Bad Request');
       }
       if (overDaysLimit) {
-        throw new HttpException(`There are mote than ${MaxRequestsByDay.vacations} requests in one day of your request`, HttpStatus.BAD_REQUEST);
+        throw new CustomRpcException(`There are mote than ${MaxRequestsByDay.vacations} requests in one day of your request`, 
+        HttpStatus.BAD_REQUEST, 'Bad Request');
       }
       
       const updateBalanceDto = await this.balanceService.validateVacationsUpdate(
@@ -177,13 +180,13 @@ export class RequestService {
       );
 
       if (updateBalanceDto.error) {
-        throw new HttpException(updateBalanceDto.error, HttpStatus.BAD_REQUEST);
+        throw new CustomRpcException(updateBalanceDto.error, HttpStatus.BAD_REQUEST, 'Bad Request');
       }
 
       return { updateBalanceDto, daysRequested};
     }
 
-    throw new HttpException('Request type is not valid', HttpStatus.BAD_REQUEST);
+    throw new CustomRpcException('Request type is not valid', HttpStatus.BAD_REQUEST, 'Bad Request');
   }
 
   async validateCreateByUserAdmin(balance: Balance, typeId: number, startDate: Date, endDate: Date): Promise<any> {
@@ -198,12 +201,13 @@ export class RequestService {
       const daysAfterToday = diffrenceBetweenDates(today, startDate);
 
       if (numberDaysRequested > MaxDaysRequested.compDays) {
-        throw new RpcException('Invalid request');
-        throw new HttpException(`Amount of comp days must not be greater than ${MaxDaysRequested.compDays}`, HttpStatus.BAD_REQUEST);
+        throw new CustomRpcException(`Amount of comp days must not be greater than ${MaxDaysRequested.compDays}`
+        , HttpStatus.BAD_REQUEST, 'Bad Request');
       }
       if (daysAfterToday < DaysAfterRequest.minDaysCompDays ||
         startDate > maxDateAfter) {
-        throw new HttpException(`Comp days should be requested ${DaysAfterRequest.minDaysCompDays} before`, HttpStatus.BAD_REQUEST);
+        throw new CustomRpcException(`Comp days should be requested ${DaysAfterRequest.minDaysCompDays} before`
+        , HttpStatus.BAD_REQUEST, 'Bad Request');
       }
 
       const updateBalanceDto = await this.balanceService.validateCompDaysUpdate(
@@ -213,7 +217,8 @@ export class RequestService {
       );
 
       if (updateBalanceDto.error) {
-        throw new HttpException(updateBalanceDto.error, HttpStatus.BAD_REQUEST);
+        throw new CustomRpcException(updateBalanceDto.error
+        , HttpStatus.BAD_REQUEST, 'Bad Request');
       }
 
       return { updateBalanceDto, daysRequested };
@@ -225,10 +230,12 @@ export class RequestService {
       const daysAfterToday = diffrenceBetweenDates(today, startDate);
       
       if (numberDaysRequested > MaxDaysRequested.vacations) {
-        throw new HttpException(`Amount of vacations must not be greater than ${MaxDaysRequested.vacations}`, HttpStatus.BAD_REQUEST);
+        throw new CustomRpcException(`Amount of vacations must not be greater than ${MaxDaysRequested.vacations}`
+        , HttpStatus.BAD_REQUEST, 'Bad Request');
       }
       if (daysAfterToday < DaysAfterRequest.minDaysVacations) {
-        throw new HttpException(`Comp days should be requested ${DaysAfterRequest.minDaysVacations} before`, HttpStatus.BAD_REQUEST);
+        throw new CustomRpcException(`Comp days should be requested ${DaysAfterRequest.minDaysVacations} before`
+        , HttpStatus.BAD_REQUEST, 'Bad Request');
       }
       
       const updateBalanceDto = await this.balanceService.validateVacationsUpdate(
@@ -238,12 +245,12 @@ export class RequestService {
       );
 
       if (updateBalanceDto.error) {
-        throw new HttpException(updateBalanceDto.error, HttpStatus.BAD_REQUEST);
+        throw new CustomRpcException(updateBalanceDto.error, HttpStatus.BAD_REQUEST, 'Bad Request');
       }
 
       return { updateBalanceDto, daysRequested};
     }
 
-    throw new HttpException('Request type is not valid', HttpStatus.BAD_REQUEST);
+    throw new CustomRpcException('Request type is not valid', HttpStatus.BAD_REQUEST, 'Bad Request');
   }
 }
