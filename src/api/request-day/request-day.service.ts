@@ -29,9 +29,10 @@ export class RequestDayService {
     await Promise.all(
       dates.map( async(date: Date) => {
         const day = new Date(date);
+        day.setUTCHours(0, 0, 0, 0);
   
-        let number = await this.requestDayRepository.count({ where: { day } });
-  
+        const number = await this.requestDayRepository.count({ where: { day } });
+        
         numberOfRequest.push(number);
       })
     );
@@ -45,9 +46,10 @@ export class RequestDayService {
     await Promise.all(
       dates.map( async(date: Date) => {
         const day = new Date(date);
-  
-        let number = await this.requestDayRepository.count({ where: { day, admin: 0 } });
-  
+        day.setUTCHours(0, 0, 0, 0);
+        
+        const number = await this.requestDayRepository.count({ where: { day, admin: 0 } });
+
         numberOfRequest.push(number);
       })
     );

@@ -17,6 +17,7 @@ import { Transaction } from '../transaction/entities/transaction.entity';
 import { TransactionStatus } from 'src/common/enums/transactionStatus.enum';
 import { RequestStatus } from 'src/common/enums/requestStatus.enum';
 import { CustomRpcException } from 'src/common/exception/custom-rpc.exception';
+import { map } from 'rxjs';
 
 @Injectable()
 export class RequestService {
@@ -94,6 +95,24 @@ export class RequestService {
     }
 
     return await this.requestRepository.find({ where: { userId }});
+  }
+
+  async findNumberOfRequestByYearAndMonth(year: number, month: number): Promise<any> {
+    const startDate = new Date(year, month -1, 1);
+    const endDate = new Date(year, month, 0);
+    const daysRequested = daysBetweenDates(startDate, endDate);
+    const numberOfRequestByDays = await this.requestDayService.countByDays(daysRequested);
+
+    let requestsByDay = [];
+
+    for (let i = 0; i < daysRequested.length; i++) {
+      requestsByDay.push({
+        day: daysRequested[i],
+        number: numberOfRequestByDays[i]
+      });
+    }
+
+    return requestsByDay;
   }
 
   async findByUserId(userId: number): Promise<Request[]> {

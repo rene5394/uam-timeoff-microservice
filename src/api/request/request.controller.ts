@@ -30,6 +30,13 @@ export class RequestController {
     return this.requestService.findAllByUserId(userId, status);
   }  
 
+  @MessagePattern('findNumberOfRequestByYearAndMonth')
+  findNumberOfRequestsByYearAndMonth(@Payload() findParams: any) {
+    const { year, month } = findParams;
+    
+    return this.requestService.findNumberOfRequestByYearAndMonth(year, month);
+  }
+
   @MessagePattern('findOneRequest')
   findOne(@Payload() id: number) {
     return this.requestService.findOne(id);
