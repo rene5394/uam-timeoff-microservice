@@ -1,10 +1,10 @@
 export function daysBetweenDates(startDate: Date, endDate: Date): Date[] {
   let dates = [];
   const copyStartDate = new Date(startDate.getTime());
-  
 
   while (endDate >= copyStartDate) {
-    dates.push(copyStartDate);
+    const date = new Date(copyStartDate);
+    dates.push(date);
 
     copyStartDate.setDate(copyStartDate.getDate() + 1);
   }
