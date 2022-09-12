@@ -35,7 +35,7 @@ export class RequestService {
     return await this.requestRepository.save(createRequestDto);
   }
 
-  async createByUser(createRequestDto: CreateRequestDto): Promise<Request> {    
+  async createByUser(createRequestDto: CreateRequestDto): Promise<number> {
     const { userId, typeId, startDate, endDate, roleId } = createRequestDto;
     const startDateFormatted = new Date(startDate);
     const endDateFormatted = new Date(endDate);
@@ -44,9 +44,9 @@ export class RequestService {
 
     const balance = await this.balanceService.findOneByUserId(userId);
     const isAdmin = (roleId === Role.admin) ? 1 : 0;
-    
+
     const { updateBalanceDto, daysRequested } = (roleId === Role.admin) ?
-    await this.validateCreateByUserAdmin(balance, typeId, startDateFormatted, endDateFormatted):
+    await this.validateCreateByUserAdmin(balance, typeId, startDateFormatted, endDateFormatted) :
     await this.validateCreateByUser(balance, typeId, startDateFormatted, endDateFormatted);
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -66,8 +66,8 @@ export class RequestService {
       });
 
       queryRunner.commitTransaction();
-
-      return await this.findOne(insertId);
+      
+      return insertId;
     } catch (err) {
       await queryRunner.rollbackTransaction();
       

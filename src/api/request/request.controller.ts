@@ -1,6 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { RequestService } from './request.service';
+import { Request } from './entities/request.entity';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
 
@@ -9,13 +10,15 @@ export class RequestController {
   constructor(private readonly requestService: RequestService) {}
 
   @MessagePattern('createRequest')
-  create(@Payload() createRequestDto: CreateRequestDto) {
-    return this.requestService.create(createRequestDto);
+  async create(@Payload() createRequestDto: CreateRequestDto) {
+    return await this.requestService.create(createRequestDto);
   }
 
   @MessagePattern('createUserIdRequest')
-  createByUserId(@Payload() createRequestDto: CreateRequestDto) {
-    return this.requestService.createByUser(createRequestDto);
+  async createByUserId(@Payload() createRequestDto: CreateRequestDto) {
+    const requestId = await this.requestService.createByUser(createRequestDto);
+
+    return await this.requestService.findOne(requestId);
   }
 
   @MessagePattern('findAllRequest')

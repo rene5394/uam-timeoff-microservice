@@ -4,25 +4,13 @@ import { AppModule } from './app.module';
 import { RabbitMQ } from './common/constants';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {});
-  for (const queue of [
-    RabbitMQ.BalanceQueue, 
-    RabbitMQ.BalanceTransactionQueue,
-    RabbitMQ.RequestQueue,
-    RabbitMQ.StatusQueue,
-    RabbitMQ.TransactionQueue,
-    RabbitMQ.TransactionStatusQueue,
-    RabbitMQ.TypeQueue
-  ]) {
-    app.connectMicroservice({
+  const app = await NestFactory.createMicroservice(AppModule, {
       transport: Transport.RMQ,
       options: {
         url: [process.env.AMQP_URL],
-        queue
+        queue: RabbitMQ.TimeOffQueue
       },
     });
-  }
-  await app.startAllMicroservices();
-  await app.listen(process.env.PORT || 8082);
+  await app.listen();
 }
 bootstrap();
