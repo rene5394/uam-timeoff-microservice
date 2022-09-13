@@ -65,7 +65,7 @@ export class RequestService {
         transactionStatusId: TransactionStatus.createdByBP
       });
 
-      queryRunner.commitTransaction();
+      await queryRunner.commitTransaction();
       
       return insertId;
     } catch (err) {
