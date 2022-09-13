@@ -173,7 +173,7 @@ export class RequestService {
       const daysRequested = daysBetweenDates(startDate, endDate);
       const numberDaysRequested = daysRequested.length;
       const daysAfterToday = diffrenceBetweenDates(today, startDate);
-      const numberOfRequestByDays = await this.requestDayService.countByDays(daysRequested);
+      const numberOfRequestByDays = await this.requestDayService.countByDaysNoAdmin(daysRequested);
       const overDaysLimit = numberOfRequestByDays.some((numberOfRequest) => {
         return numberOfRequest > MaxRequestsByDay.vacations - 1;
       });
