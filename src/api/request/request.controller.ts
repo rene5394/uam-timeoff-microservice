@@ -40,6 +40,13 @@ export class RequestController {
     return this.requestService.findNumberOfRequestByYearAndMonth(year, month);
   }
 
+  @MessagePattern('findNumberOfRequestByDateRange')
+  findNumberOfRequestsByDateRange(@Payload() dateRange: any) {
+    const { startDate, endDate } = dateRange;
+    
+    return this.requestService.findNumberOfRequestsByDateRange(startDate, endDate);
+  }
+
   @MessagePattern('findOneRequest')
   findOne(@Payload() id: number) {
     return this.requestService.findOne(id);

@@ -56,7 +56,9 @@ export class RequestService {
     try {
       const { raw : { insertId } } = await queryRunner.manager.insert(Request, createRequestDto);
       await queryRunner.manager.update(Balance, balance.id, updateBalanceDto);
+      
       daysRequested.map( async(day: Date) => {
+        day.setUTCHours(6, 0, 0, 0);
         await queryRunner.manager.insert(RequestDay, { requestId: insertId, day, admin: isAdmin} );
       });
       await queryRunner.manager.insert(Transaction, { 
@@ -100,6 +102,24 @@ export class RequestService {
   async findNumberOfRequestByYearAndMonth(year: number, month: number): Promise<any> {
     const startDate = new Date(year, month -1, 1);
     const endDate = new Date(year, month, 0);
+    const daysRequested = daysBetweenDates(startDate, endDate);
+    const numberOfRequestByDays = await this.requestDayService.countByDays(daysRequested);
+
+    let requestsByDay = [];
+
+    for (let i = 0; i < daysRequested.length; i++) {
+      requestsByDay.push({
+        day: daysRequested[i],
+        number: numberOfRequestByDays[i]
+      });
+    }
+
+    return requestsByDay;
+  }
+
+  async findNumberOfRequestsByDateRange(start: string, end: string): Promise<any> {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
     const daysRequested = daysBetweenDates(startDate, endDate);
     const numberOfRequestByDays = await this.requestDayService.countByDays(daysRequested);
 
