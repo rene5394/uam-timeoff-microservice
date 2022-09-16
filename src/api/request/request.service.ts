@@ -102,6 +102,7 @@ export class RequestService {
   async findNumberOfRequestByYearAndMonth(year: number, month: number): Promise<any> {
     const startDate = new Date(year, month -1, 1);
     const endDate = new Date(year, month, 0);
+    
     const daysRequested = daysBetweenDates(startDate, endDate);
     
     const numberOfRequestByDays = await this.requestDayService.countByDaysNoAdmin(daysRequested);
@@ -121,7 +122,11 @@ export class RequestService {
   async findNumberOfRequestsByDateRange(start: string, end: string): Promise<any> {
     const startDate = new Date(start);
     const endDate = new Date(end);
+    startDate.setUTCHours(6, 0, 0, 0);
+    endDate.setUTCHours(6, 0, 0, 0);
+    
     const daysRequested = daysBetweenDates(startDate, endDate);
+
     const numberOfRequestByDays = await this.requestDayService.countByDaysNoAdmin(daysRequested);
 
     let requestsByDay = [];
