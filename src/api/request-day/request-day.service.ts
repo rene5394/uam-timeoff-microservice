@@ -25,35 +25,37 @@ export class RequestDayService {
 
   async countByDays(dates: Date[]): Promise<number[]> {
     let numberOfRequest = [];
-
-    await Promise.all(
+    
+    const numbers = await Promise.all(
       dates.map( async(date: Date) => {
         const day = new Date(date);
-        day.setUTCHours(0, 0, 0, 0);
-  
-        const number = await this.requestDayRepository.count({ where: { day } });
-        
-        numberOfRequest.push(number);
-      })
-    );
 
+        return await this.requestDayRepository.count({ where: { day } });
+      })
+    )
+
+    numbers.map((number) => {
+      numberOfRequest.push(number);
+    });
+    
     return numberOfRequest;
   }
 
   async countByDaysNoAdmin(dates: Date[]): Promise<number[]> {
     let numberOfRequest = [];
 
-    await Promise.all(
+    const numbers = await Promise.all(
       dates.map( async(date: Date) => {
         const day = new Date(date);
-        day.setUTCHours(0, 0, 0, 0);
-        
-        const number = await this.requestDayRepository.count({ where: { day, admin: 0 } });
 
-        numberOfRequest.push(number);
+        return await this.requestDayRepository.count({ where: { day, admin: 0 } });
       })
-    );
+    )
 
+    numbers.map((number) => {
+      numberOfRequest.push(number);
+    });
+    
     return numberOfRequest;
   }
 

@@ -103,7 +103,8 @@ export class RequestService {
     const startDate = new Date(year, month -1, 1);
     const endDate = new Date(year, month, 0);
     const daysRequested = daysBetweenDates(startDate, endDate);
-    const numberOfRequestByDays = await this.requestDayService.countByDays(daysRequested);
+    
+    const numberOfRequestByDays = await this.requestDayService.countByDaysNoAdmin(daysRequested);
 
     let requestsByDay = [];
 
@@ -121,7 +122,7 @@ export class RequestService {
     const startDate = new Date(start);
     const endDate = new Date(end);
     const daysRequested = daysBetweenDates(startDate, endDate);
-    const numberOfRequestByDays = await this.requestDayService.countByDays(daysRequested);
+    const numberOfRequestByDays = await this.requestDayService.countByDaysNoAdmin(daysRequested);
 
     let requestsByDay = [];
 
