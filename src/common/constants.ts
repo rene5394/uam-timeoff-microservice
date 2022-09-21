@@ -2,6 +2,10 @@ export enum RabbitMQ {
     TimeOffQueue = 'timeoff'
 }
 
+export const paginationLimit = {
+    balances: 10
+  }
+
 export class DaysAfterRequest {
     static readonly minDaysCompDays = 15;
     static readonly minDaysVacations = 30;
