@@ -14,8 +14,10 @@ export class BalanceController {
   }
 
   @MessagePattern('findAllBalance')
-  findAll(): Promise<Balance[]> {
-    return this.balanceService.findAll();
+  findAll(@Payload() findParams: any): Promise<Balance[]> {
+    const { page, userIds } = findParams;
+
+    return this.balanceService.findAll(page, userIds);
   }
 
   @MessagePattern('findOneBalance')

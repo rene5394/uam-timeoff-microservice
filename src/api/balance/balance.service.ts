@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { paginationLimit } from 'src/common/constants';
+import { DataSource, Repository } from 'typeorm';
 import { BalanceOperation } from '../../common/enums/balanceOperation.enum';
 import { CreateBalanceDto } from './dto/create-balance.dto';
 import { UpdateBalanceDto } from './dto/update-balance.dto';
@@ -9,6 +10,7 @@ import { Balance } from './entities/balance.entity';
 @Injectable()
 export class BalanceService {
   constructor(
+    private dataSource: DataSource,
     @InjectRepository(Balance)
     private readonly balanceRepository: Repository<Balance>
   ) {}
@@ -17,8 +19,21 @@ export class BalanceService {
     return await this.balanceRepository.save(createBalanceDto);
   }
 
-  async findAll(): Promise<Balance[]> {
-    return await this.balanceRepository.find();
+  async findAll(page: number, userIds: any[]): Promise<Balance[]> {
+    const query = this.dataSource.getRepository(Balance)
+    .createQueryBuilder("balances");
+
+    if (userIds) {
+      query.where("balances.userId IN (:userIds)", { userIds });
+    }
+
+    if (page) {
+      query
+        .skip((page -1) * paginationLimit.balances)
+        .take(paginationLimit.balances);
+    }
+    
+    return await query.getMany();
   }
 
   async findOne(id: number): Promise<Balance> {
