@@ -93,7 +93,7 @@ export class RequestService {
     });
 
     if (statusId) {
-      return await this.requestRepository.find({ where : { statusId} });
+      return await this.requestRepository.find({ where : { userId, statusId} });
     }
 
     return await this.requestRepository.find({ where: { userId }});
