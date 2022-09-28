@@ -44,8 +44,8 @@ export class BalanceService {
     return await this.balanceRepository.findOne({ where: { userId: userId } });
   }
 
-  update(id: number, updateBalanceDto: UpdateBalanceDto) {
-    return `This action updates a #${id} balance`;
+  async update(id: number, updateBalanceDto: UpdateBalanceDto) {
+    return await this.balanceRepository.update(id, updateBalanceDto);
   }
 
   remove(id: number) {

@@ -34,4 +34,9 @@ export class BalanceController {
   update(@Payload() payload) {
     return this.balanceService.update(payload.id, payload.updateBalanceDto);
   }
+
+  @MessagePattern('updateUserIdBalance')
+  updateByUserId(@Payload() payload) {
+    return this.balanceService.update(payload.userId, payload.updateBalanceDto);
+  }
 }
