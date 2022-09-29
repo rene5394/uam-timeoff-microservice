@@ -17,7 +17,6 @@ import { Transaction } from '../transaction/entities/transaction.entity';
 import { TransactionStatus } from 'src/common/enums/transactionStatus.enum';
 import { RequestStatus } from 'src/common/enums/requestStatus.enum';
 import { CustomRpcException } from 'src/common/exception/custom-rpc.exception';
-import { map } from 'rxjs';
 
 @Injectable()
 export class RequestService {
