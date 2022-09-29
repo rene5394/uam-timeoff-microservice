@@ -31,8 +31,10 @@ export class BalanceController {
   }
 
   @MessagePattern('updateBalance')
-  update(@Payload() payload) {
-    return this.balanceService.update(payload.id, payload.updateBalanceDto);
+  async update(@Payload() payload) {
+    const balanceId = await this.balanceService.update(payload.id, payload.updateBalanceDto);
+
+    return await this.balanceService.findOne(balanceId);
   }
 
   @MessagePattern('updateUserIdBalance')

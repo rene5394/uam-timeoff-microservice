@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { paginationLimit } from 'src/common/constants';
+import { CustomRpcException } from 'src/common/exception/custom-rpc.exception';
 import { DataSource, Repository } from 'typeorm';
 import { BalanceOperation } from '../../common/enums/balanceOperation.enum';
 import { CreateBalanceDto } from './dto/create-balance.dto';
@@ -16,7 +17,14 @@ export class BalanceService {
   ) {}
 
   async create(createBalanceDto: CreateBalanceDto): Promise<Balance> {
-    return await this.balanceRepository.save(createBalanceDto);
+    try {
+      const balance = await this.balanceRepository.save(createBalanceDto);
+
+      return balance;
+    } catch (error) {
+      throw new CustomRpcException('Error executing create balance'
+      , HttpStatus.INTERNAL_SERVER_ERROR, 'Internal Server Error');
+    }
   }
 
   async findAll(page: number, userIds: any[]): Promise<Balance[]> {
@@ -45,7 +53,14 @@ export class BalanceService {
   }
 
   async update(id: number, updateBalanceDto: UpdateBalanceDto) {
-    return await this.balanceRepository.update(id, updateBalanceDto);
+    try {
+      const { raw : { insertId } } = await this.balanceRepository.update(id, updateBalanceDto);
+
+      return insertId;
+    } catch (error) {
+      throw new CustomRpcException('Error executing update balance'
+      , HttpStatus.INTERNAL_SERVER_ERROR, 'Internal Server Error');
+    }
   }
 
   remove(id: number) {
