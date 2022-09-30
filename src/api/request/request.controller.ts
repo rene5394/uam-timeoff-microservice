@@ -31,13 +31,27 @@ export class RequestController {
     const { userId, status } = findParams;
 
     return this.requestService.findAllByUserId(userId, status);
-  }  
+  }
+
+  @MessagePattern('findRequestByYearAndMonth')
+  findRequestsByYearAndMonth(@Payload() findParams: any) {
+    const { year, month } = findParams;
+    
+    return this.requestService.findRequestsByYearAndMonth(year, month);
+  }
+
+  @MessagePattern('findRequestByDateRange')
+  findRequestsByDateRange(@Payload() dateRange: any) {
+    const { startDate, endDate } = dateRange;
+    
+    return this.requestService.findRequestsByDateRange(startDate, endDate);
+  }
 
   @MessagePattern('findNumberOfRequestByYearAndMonth')
   findNumberOfRequestsByYearAndMonth(@Payload() findParams: any) {
     const { year, month } = findParams;
     
-    return this.requestService.findNumberOfRequestByYearAndMonth(year, month);
+    return this.requestService.findNumberOfRequestsByYearAndMonth(year, month);
   }
 
   @MessagePattern('findNumberOfRequestByDateRange')

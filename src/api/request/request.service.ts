@@ -98,7 +98,49 @@ export class RequestService {
     return await this.requestRepository.find({ where: { userId }});
   }
 
-  async findNumberOfRequestByYearAndMonth(year: number, month: number): Promise<any> {
+  async findRequestsByYearAndMonth(year: number, month: number): Promise<any> {
+    const startDate = new Date(year, month -1, 1);
+    const endDate = new Date(year, month, 0);
+    
+    const daysRequested = daysBetweenDates(startDate, endDate);
+    
+    const requests = await this.requestDayService.findByDays(daysRequested);
+
+    let requestsByDay = [];
+
+    for (let i = 0; i < daysRequested.length; i++) {
+      requestsByDay.push({
+        day: daysRequested[i],
+        requests: requests[i]
+      });
+    }
+
+    return requestsByDay;
+  }
+
+  async findRequestsByDateRange(start: string, end: string): Promise<any> {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    startDate.setUTCHours(6, 0, 0, 0);
+    endDate.setUTCHours(6, 0, 0, 0);
+    
+    const daysRequested = daysBetweenDates(startDate, endDate);
+
+    const requests = await this.requestDayService.findByDays(daysRequested);
+
+    let requestsByDays = [];
+
+    for (let i = 0; i < daysRequested.length; i++) {
+      requestsByDays.push({
+        day: daysRequested[i],
+        requests: requests[i]
+      });
+    }
+
+    return requestsByDays;
+  }
+
+  async findNumberOfRequestsByYearAndMonth(year: number, month: number): Promise<any> {
     const startDate = new Date(year, month -1, 1);
     const endDate = new Date(year, month, 0);
     
