@@ -22,8 +22,10 @@ export class RequestController {
   }
 
   @MessagePattern('findAllRequest')
-  findAll() {
-    return this.requestService.findAll();
+  findAll(@Payload() findParams: any) {
+    const { status, page, startDate, endDate } = findParams;
+
+    return this.requestService.findAll(status, page, startDate, endDate);
   }
 
   @MessagePattern('findAllUserIdRequest')
