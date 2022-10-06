@@ -1,7 +1,7 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DaysAfterRequest, MaxDaysRequested, MaxRequestsByDay } from '../../common/constants';
-import { DataSource, Repository } from 'typeorm';
+import { DaysAfterRequest, MaxDaysRequested, MaxRequestsByDay, paginationLimit } from '../../common/constants';
+import { Brackets, DataSource, Repository } from 'typeorm';
 import { BalanceService } from '../balance/balance.service';
 import { Balance } from '../balance/entities/balance.entity';
 import { BalanceOperation } from '../../common/enums/balanceOperation.enum';
@@ -77,8 +77,43 @@ export class RequestService {
     }
   }
 
-  async findAll(): Promise<Request[]> {
-   return await this.requestRepository.find();
+  async findAll(status: string, page: number, startDate: Date, endDate: Date) {
+    const today = new Date();
+    const query = this.dataSource.getRepository(Request)
+      .createQueryBuilder("requests")
+
+    const keys = Object.keys(RequestStatus);
+    let statusId = 0;
+
+    Object.keys(RequestStatus).forEach(key => {
+      if (key === status) {
+        statusId = RequestStatus[key];
+      }
+    });
+
+    if (statusId) {
+      query.where("requests.statusId = :statusId", { statusId });
+    }
+
+    if (startDate) {
+      query.andWhere(new Brackets(qb => {
+        qb.andWhere("requests.startDate > :startDate", { startDate })
+          .orWhere("requests.endDate < :startDate", { today })
+      }));
+    }
+
+    if (page) {
+      query
+        .skip((page -1) * paginationLimit.balances)
+        .take(paginationLimit.balances);
+    }
+
+    const [list, count] = await Promise.all([
+      query.getMany(),
+      query.getCount()
+    ]);
+
+    return { list, count };
   }
 
   async findAllByUserId(userId: number, status: string): Promise<Request[]> {
