@@ -77,7 +77,7 @@ export class RequestService {
     }
   }
 
-  async findAll(status: string, page: number, startDate: Date, endDate: Date) {
+  async findAll(status: string, page: number, userIds: any[], startDate: Date, endDate: Date) {
     const today = new Date();
     const query = this.dataSource.getRepository(Request)
       .createQueryBuilder("requests")
@@ -90,6 +90,10 @@ export class RequestService {
         statusId = RequestStatus[key];
       }
     });
+
+    if (userIds) {
+      query.where("requests.userId IN (:userIds)", { userIds });
+    }
 
     if (statusId) {
       query.where("requests.statusId = :statusId", { statusId });
