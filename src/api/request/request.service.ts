@@ -78,7 +78,6 @@ export class RequestService {
   }
 
   async findAll(status: string, page: number, userIds: any[], startDate: Date, endDate: Date) {
-    const today = new Date();
     const query = this.dataSource.getRepository(Request)
       .createQueryBuilder("requests")
 
@@ -100,9 +99,21 @@ export class RequestService {
     }
 
     if (startDate) {
+      const start = new Date(startDate);
+      start.setUTCHours(6, 0, 0, 0);
+      
       query.andWhere(new Brackets(qb => {
-        qb.andWhere("requests.startDate > :startDate", { startDate })
-          .orWhere("requests.endDate < :startDate", { today })
+        qb.andWhere("requests.createdAt >= :startDate", { startDate: start });
+        if (endDate) {
+          const end = new Date(endDate);
+          end.setUTCHours(29, 59, 59, 999);
+
+          qb.andWhere("requests.createdAt <= :endDate", { endDate: end });
+        } else {
+          const end = new Date();
+
+          qb.andWhere("requests.createdAt <= :endDate", { endDate: end });
+        }
       }));
     }
 
@@ -116,7 +127,7 @@ export class RequestService {
       query.getMany(),
       query.getCount()
     ]);
-
+    
     return { list, count };
   }
 
