@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { Request } from "src/api/request/entities/request.entity";
 
 @Entity('transactions')
 export class Transaction {
@@ -19,4 +20,8 @@ export class Transaction {
 
     @Column({ type: 'datetime' })
     updatedAt: Date;
+
+    @ManyToOne(() => Request, (request) => request.id)
+    @JoinColumn({name: 'requestId'})
+    request: Request;
 }
