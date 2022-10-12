@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, DataSource, Repository } from 'typeorm';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
@@ -17,6 +17,7 @@ import { RequestType } from '../../common/enums/requestType.enum';
 import { BalanceOperation } from '../../common/enums/balanceOperation.enum';
 import { UpdateBalanceDto } from '../balance/dto/update-balance.dto';
 import { ApproveStatus } from '../../common/enums/approveStatus.enum';
+import { CustomRpcException } from 'src/common/exception/custom-rpc.exception';
 
 @Injectable()
 export class TransactionService {
@@ -32,7 +33,7 @@ export class TransactionService {
     private readonly requestDayService: RequestDayService
   ) {}
 
-  async create(roleId: number, hr: number, createTransactionDto: CreateTransactionDto): Promise<Transaction> {
+  async create(userId: number, roleId: number, hr: number, createTransactionDto: CreateTransactionDto): Promise<Transaction> {
     const { requestId, transactionStatusId } = createTransactionDto;
     const request = await this.requestService.findOne(requestId);
     const { updateRequestDTO, updateBalance } = await this.validateCreate(
@@ -73,13 +74,13 @@ export class TransactionService {
         await queryRunner.manager.update(Balance, balance.id, updateBalanceDto);
       }
 
-      queryRunner.commitTransaction();
+      await queryRunner.commitTransaction();
 
       return transaction;
     } catch (err) {
       await queryRunner.rollbackTransaction();
 
-      throw new HttpException('Error executing create transaction SQL transaction', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new CustomRpcException('Error executing create transaction SQL transaction', HttpStatus.INTERNAL_SERVER_ERROR, 'Internal Server Error');
     }
   }
 
@@ -134,7 +135,8 @@ export class TransactionService {
         return { updateRequestDTO, updateBalance: false };
       }
 
-      throw new HttpException('Unauthorized to make this transaction', HttpStatus.BAD_REQUEST);
+      throw new CustomRpcException('Unauthorized to make this transaction'
+      , HttpStatus.FORBIDDEN, 'Unauthorized');
     }
     if (transactionStatusId === TransactionStatus.approvedByHR) {
       if (hr === Hr.is &&
@@ -146,7 +148,8 @@ export class TransactionService {
         return { updateRequestDTO, updateBalance: false };
       }
 
-      throw new HttpException('Unauthorized to make this transaction', HttpStatus.BAD_REQUEST);
+      throw new CustomRpcException('Unauthorized to make this transaction'
+      , HttpStatus.FORBIDDEN, 'Unauthorized');
     }
     if (transactionStatusId === TransactionStatus.deniedByCoach) {
       if ((roleId === Role.coach || roleId === Role.jrCoach) &&
@@ -156,7 +159,8 @@ export class TransactionService {
         return { updateRequestDTO, updateBalance: true };
       }
 
-      throw new HttpException('Unauthorized to make this transaction', HttpStatus.BAD_REQUEST);
+      throw new CustomRpcException('Unauthorized to make this transaction'
+      , HttpStatus.FORBIDDEN, 'Unauthorized');
     }
     if (transactionStatusId === TransactionStatus.deniedByHR) {
       if (hr === Hr.is &&
@@ -167,7 +171,8 @@ export class TransactionService {
         return { updateRequestDTO, updateBalance: true };
       }
 
-      throw new HttpException('Unauthorized to make this transaction', HttpStatus.BAD_REQUEST);
+      throw new CustomRpcException('Unauthorized to make this transaction'
+      , HttpStatus.FORBIDDEN, 'Unauthorized');
     }
     if (transactionStatusId === TransactionStatus.cancelledByHR) {
       if (hr === Hr.is &&
@@ -177,9 +182,11 @@ export class TransactionService {
         return { updateRequestDTO, updateBalance: true };
       }
 
-      throw new HttpException('Unauthorized to make this transaction', HttpStatus.BAD_REQUEST);
+      throw new CustomRpcException('Unauthorized to make this transaction'
+      , HttpStatus.FORBIDDEN, 'Unauthorized');
     }
 
-    throw new HttpException('Unauthorized to make this transaction', HttpStatus.BAD_REQUEST);
+    throw new CustomRpcException('Unauthorized to make this transaction'
+      , HttpStatus.FORBIDDEN, 'Unauthorized');
   }
 }

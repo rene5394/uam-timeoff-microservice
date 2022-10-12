@@ -8,8 +8,10 @@ export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
   @MessagePattern('createTransaction')
-  create(@Payload() createTransactionDto: CreateTransactionDto) {
-    return this.transactionService.create(1, 1, createTransactionDto);
+  create(@Payload() createData: any) {
+    const {userId, roleId, hr, createTransactionDto} = createData;    
+
+    return this.transactionService.create(userId, roleId, hr, createTransactionDto);
   }
 
   @MessagePattern('findAllTransaction')
