@@ -36,7 +36,7 @@ export class Request {
     @Column({ type: 'datetime' })
     updatedAt: Date;
 
-    @OneToMany(() => Transaction, (transaction) => transaction.requestId)
+    @OneToMany(() => Transaction, (transaction) => transaction.request)
     @JoinColumn({name: 'requestId'})
     transactions: Transaction[];
 }
