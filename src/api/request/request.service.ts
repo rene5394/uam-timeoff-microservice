@@ -80,6 +80,7 @@ export class RequestService {
   async findAll(status: string, page: number, userIds: any[], startDate: Date, endDate: Date) {
     const query = this.dataSource.getRepository(Request)
       .createQueryBuilder("requests")
+      .leftJoinAndSelect("requests.transactions", "transactions")
 
     const keys = Object.keys(RequestStatus);
     let statusId = 0;
@@ -142,10 +143,18 @@ export class RequestService {
     });
 
     if (statusId) {
-      return await this.requestRepository.find({ where : { userId, statusId} });
+      return await this.requestRepository.find({
+        relations: {
+          transactions: true,
+        },
+        where : { userId, statusId} });
     }
 
-    return await this.requestRepository.find({ where: { userId }});
+    return await this.requestRepository.find({
+      relations: {
+        transactions: true,
+      },
+      where: { userId }});
   }
 
   async findRequestsByYearAndMonth(year: number, month: number): Promise<any> {
@@ -237,7 +246,12 @@ export class RequestService {
   }
 
   async findOne(id: number): Promise<Request> {
-    return await this.requestRepository.findOne({ where: { id }});
+    return await this.requestRepository.findOne({ 
+      relations: {
+        transactions: true,
+      },
+      where: { id }
+    });
   }
 
   async update(id: number, updateRequestDto: UpdateRequestDto) {
