@@ -80,7 +80,7 @@ export class RequestService {
   async findAll(status: string, page: number, userIds: any[], startDate: Date, endDate: Date) {
     const query = this.dataSource.getRepository(Request)
       .createQueryBuilder("requests")
-      .leftJoinAndSelect("requests.transactions", "transactions")
+      .leftJoinAndSelect("requests.transactions", "transactions");
 
     const keys = Object.keys(RequestStatus);
     let statusId = 0;
