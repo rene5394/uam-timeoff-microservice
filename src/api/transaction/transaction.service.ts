@@ -33,7 +33,7 @@ export class TransactionService {
     private readonly requestDayService: RequestDayService
   ) {}
 
-  async create(userId: number, roleId: number, hr: number, createTransactionDto: CreateTransactionDto): Promise<Transaction> {
+  async create(roleId: number, hr: number, createTransactionDto: CreateTransactionDto): Promise<Transaction> {
     const { requestId, transactionStatusId } = createTransactionDto;
     const request = await this.requestService.findOne(requestId);
     const { updateRequestDTO, updateBalance } = await this.validateCreate(
@@ -53,9 +53,9 @@ export class TransactionService {
       
       if (updateBalance) {
         const numberDaysRequested = await this.requestDayService.countByRequestId(requestId);
-        const balance = await this.balanceService.findOne(request.userId);
+        const balance = await this.balanceService.findOneByUserId(request.userId);
         let updateBalanceDto: UpdateBalanceDto;
-
+        
         if (request.typeId == RequestType.compDay) {
           updateBalanceDto = await this.balanceService.validateCompDaysUpdate(
             balance.id,
@@ -167,17 +167,6 @@ export class TransactionService {
         request.statusId === RequestStatus.pending &&
         request.coachApproval === ApproveStatus.approved) {
         const updateRequestDTO = { hrApproval: 0, statusId: RequestStatus.denied } as UpdateRequestDto;
-
-        return { updateRequestDTO, updateBalance: true };
-      }
-
-      throw new CustomRpcException('Unauthorized to make this transaction'
-      , HttpStatus.FORBIDDEN, 'Unauthorized');
-    }
-    if (transactionStatusId === TransactionStatus.cancelledByHR) {
-      if (hr === Hr.is &&
-        request.statusId === RequestStatus.approved) {
-        const updateRequestDTO = { statusId: RequestStatus.canceled } as UpdateRequestDto;
 
         return { updateRequestDTO, updateBalance: true };
       }
