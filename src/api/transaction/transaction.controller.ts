@@ -9,9 +9,9 @@ export class TransactionController {
 
   @MessagePattern('createTransaction')
   create(@Payload() createData: any) {
-    const {userId, roleId, hr, createTransactionDto} = createData;    
+    const {roleId, hr, createTransactionDto} = createData;    
 
-    return this.transactionService.create(userId, roleId, hr, createTransactionDto);
+    return this.transactionService.create(roleId, hr, createTransactionDto);
   }
 
   @MessagePattern('findAllTransaction')
