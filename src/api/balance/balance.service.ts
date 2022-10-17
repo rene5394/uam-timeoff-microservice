@@ -1,9 +1,11 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { paginationLimit } from 'src/common/constants';
+import { RequestType } from 'src/common/enums/requestType.enum';
 import { CustomRpcException } from 'src/common/exception/custom-rpc.exception';
 import { DataSource, Repository } from 'typeorm';
 import { BalanceOperation } from '../../common/enums/balanceOperation.enum';
+import { BalanceTransaction } from '../balance-transaction/entities/balance-transaction.entity';
 import { CreateBalanceDto } from './dto/create-balance.dto';
 import { UpdateBalanceDto } from './dto/update-balance.dto';
 import { Balance } from './entities/balance.entity';
@@ -52,12 +54,46 @@ export class BalanceService {
     return await this.balanceRepository.findOne({ where: { userId: userId } });
   }
 
-  async update(id: number, updateBalanceDto: UpdateBalanceDto) {
-    try {
-      const { raw : { insertId } } = await this.balanceRepository.update(id, updateBalanceDto);
+  async update(id: number, updatedBy: number, updateBalanceDto: UpdateBalanceDto) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-      return insertId;
+    try {
+      const balance = await this.balanceRepository.findOne({ where: { id: id } });
+      await queryRunner.manager.update(Balance, id, updateBalanceDto);
+      await queryRunner.commitTransaction();
+
+      if (balance.compDays !== updateBalanceDto.compDays) {
+        const operation =  (updateBalanceDto.compDays > balance.compDays) ?
+          BalanceOperation.addition :
+          BalanceOperation.substraction;
+
+        await queryRunner.manager.insert(BalanceTransaction, {
+          balanceId: id,
+          typeId: RequestType.compDay,
+          operation,
+          amount: Math.abs(updateBalanceDto.compDays - balance.compDays),
+          updatedBy
+        });
+      } if (balance.vacationDays !== updateBalanceDto.vacationDays) {
+        const operation =  (updateBalanceDto.vacationDays > balance.vacationDays) ?
+          BalanceOperation.addition :
+          BalanceOperation.substraction;
+        
+        await queryRunner.manager.insert(BalanceTransaction, {
+          balanceId: id,
+          typeId: RequestType.vacation,
+          operation,
+          amount: Math.abs(updateBalanceDto.vacationDays - balance.vacationDays),
+          updatedBy
+        });
+      }
+
+      return id;
     } catch (error) {
+      await queryRunner.rollbackTransaction();
+
       throw new CustomRpcException('Error executing update balance'
       , HttpStatus.INTERNAL_SERVER_ERROR, 'Internal Server Error');
     }
