@@ -31,7 +31,44 @@ export class RequestService {
   ) {}
 
   async create(createRequestDto: CreateRequestDto): Promise<Request> {
-    return await this.requestRepository.save(createRequestDto);
+    const { userId, typeId, startDate, endDate, roleId } = createRequestDto;
+    const startDateFormatted = new Date(startDate);
+    const endDateFormatted = new Date(endDate);
+    startDateFormatted.setUTCHours(0, 0, 0, 0);
+    endDateFormatted.setUTCHours(23, 59, 59, 999);
+
+    const balance = await this.balanceService.findOneByUserId(userId);
+    const isAdmin = (roleId === Role.admin) ? 1 : 0;
+
+    const { updateBalanceDto, daysRequested } = await this.validateCreateByHR(balance, typeId, startDateFormatted, endDateFormatted);
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const { raw : { insertId } } = await queryRunner.manager.insert(Request, createRequestDto);
+      await queryRunner.manager.update(Balance, balance.id, updateBalanceDto);
+
+      daysRequested.map( async(day: Date) => {
+        day.setUTCHours(6, 0, 0, 0);
+        await queryRunner.manager.insert(RequestDay, { requestId: insertId, day, admin: isAdmin} );
+      });
+      await queryRunner.manager.insert(Transaction, { 
+        requestId: insertId,
+        createdBy: userId,
+        transactionStatusId: TransactionStatus.createdByHR
+      });
+
+      await queryRunner.commitTransaction();
+      
+      return insertId;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+
+      throw new CustomRpcException('Error executing create request SQL transaction'
+      , HttpStatus.INTERNAL_SERVER_ERROR, 'Internal Server Error');
+    }
   }
 
   async createByUser(createRequestDto: CreateRequestDto): Promise<number> {
@@ -256,6 +293,42 @@ export class RequestService {
 
   async update(id: number, updateRequestDto: UpdateRequestDto) {
     return await this.requestRepository.update(id, updateRequestDto);
+  }
+
+  async validateCreateByHR(balance: Balance, typeId: number, startDate: Date, endDate: Date): Promise<any> {
+    if (typeId === RequestType.compDay) {
+      const daysRequested = daysBetweenDatesNoWeekends(startDate, endDate);
+      const numberDaysRequested = daysRequested.length;
+
+      const updateBalanceDto = await this.balanceService.validateCompDaysUpdate(
+        balance.id,
+        BalanceOperation.substraction,
+        numberDaysRequested
+      );
+
+      if (updateBalanceDto.error) {
+        throw new CustomRpcException(updateBalanceDto.error, HttpStatus.BAD_REQUEST, 'Bad Request');
+      }
+
+      return { updateBalanceDto, daysRequested };
+    }
+
+    if (typeId === RequestType.vacation) {
+      const daysRequested = daysBetweenDates(startDate, endDate);
+      const numberDaysRequested = daysRequested.length;
+
+      const updateBalanceDto = await this.balanceService.validateVacationsUpdate(
+        balance.id,
+        BalanceOperation.substraction,
+        numberDaysRequested
+      );
+
+      if (updateBalanceDto.error) {
+        throw new CustomRpcException(updateBalanceDto.error, HttpStatus.BAD_REQUEST, 'Bad Request');
+      }
+
+      return { updateBalanceDto, daysRequested };
+    }
   }
 
   async validateCreateByUser(balance: Balance, typeId: number, startDate: Date, endDate: Date): Promise<any> {
