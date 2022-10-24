@@ -80,6 +80,7 @@ export class RequestService {
 
     const balance = await this.balanceService.findOneByUserId(userId);
     const isAdmin = (roleId === Role.admin) ? 1 : 0;
+    createRequestDto.coachApproval = (roleId === Role.coach || roleId === Role.jrCoach) ? 1 : 0;
 
     const { updateBalanceDto, daysRequested } = (roleId === Role.admin) ?
     await this.validateCreateByUserAdmin(balance, typeId, startDateFormatted, endDateFormatted) :

@@ -5,4 +5,5 @@ export class CreateRequestDto {
   startDate: Date;
   endDate: Date;
   roleId: number;
+  coachApproval: number;
 }
