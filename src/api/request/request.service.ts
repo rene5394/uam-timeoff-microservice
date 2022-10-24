@@ -79,8 +79,19 @@ export class RequestService {
     endDateFormatted.setUTCHours(23, 59, 59, 999);
 
     const balance = await this.balanceService.findOneByUserId(userId);
-    const isAdmin = (roleId === Role.admin) ? 1 : 0;
-    createRequestDto.coachApproval = (roleId === Role.coach || roleId === Role.jrCoach) ? 1 : 0;
+    let isAdmin = 0;
+    let transactionStatus = 0;
+    
+    if (roleId === Role.admin) {
+      isAdmin = 1;
+      transactionStatus = TransactionStatus.createdByAdmin;
+      createRequestDto.coachApproval = 1;
+    } if (roleId === Role.coach || roleId === Role.jrCoach) {
+      transactionStatus = TransactionStatus.createdByCoach;
+      createRequestDto.coachApproval = 1;
+    } if (roleId === Role.va) {
+      transactionStatus = TransactionStatus.createdByBP;
+    }
 
     const { updateBalanceDto, daysRequested } = (roleId === Role.admin) ?
     await this.validateCreateByUserAdmin(balance, typeId, startDateFormatted, endDateFormatted) :
@@ -101,7 +112,7 @@ export class RequestService {
       await queryRunner.manager.insert(Transaction, { 
         requestId: insertId,
         createdBy: userId,
-        transactionStatusId: TransactionStatus.createdByBP
+        transactionStatusId: transactionStatus
       });
 
       await queryRunner.commitTransaction();

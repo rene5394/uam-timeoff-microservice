@@ -1,9 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { RequestService } from './request.service';
-import { Request } from './entities/request.entity';
 import { CreateRequestDto } from './dto/create-request.dto';
-import { UpdateRequestDto } from './dto/update-request.dto';
 
 @Controller()
 export class RequestController {
@@ -15,7 +13,7 @@ export class RequestController {
   }
 
   @MessagePattern('createUserIdRequest')
-  async createByUserId(@Payload() createRequestDto: CreateRequestDto) {
+  async createByUserId(@Payload() createRequestDto: CreateRequestDto) {    
     const requestId = await this.requestService.createByUser(createRequestDto);
 
     return await this.requestService.findOne(requestId);
