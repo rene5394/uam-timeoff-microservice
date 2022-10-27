@@ -174,6 +174,18 @@ export class TransactionService {
       throw new CustomRpcException('Unauthorized to make this transaction'
       , HttpStatus.FORBIDDEN, 'Unauthorized');
     }
+    if (transactionStatusId === TransactionStatus.cancelledByHR) {
+      if (hr === Hr.is &&
+        request.statusId === RequestStatus.approved &&
+        request.hrApproval === ApproveStatus.approved) {
+        const updateRequestDTO = { statusId: RequestStatus.cancelled } as UpdateRequestDto;
+
+        return { updateRequestDTO, updateBalance: true };
+      }
+
+      throw new CustomRpcException('Unauthorized to make this transaction'
+      , HttpStatus.FORBIDDEN, 'Unauthorized');
+    }
 
     throw new CustomRpcException('Unauthorized to make this transaction'
       , HttpStatus.FORBIDDEN, 'Unauthorized');
