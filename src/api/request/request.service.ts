@@ -17,6 +17,7 @@ import { Transaction } from '../transaction/entities/transaction.entity';
 import { TransactionStatus } from 'src/common/enums/transactionStatus.enum';
 import { RequestStatus } from 'src/common/enums/requestStatus.enum';
 import { CustomRpcException } from 'src/common/exception/custom-rpc.exception';
+import { RequestUpdateBalance } from 'src/common/enums/requestUpdateBalance.enum';
 
 @Injectable()
 export class RequestService {
@@ -40,7 +41,7 @@ export class RequestService {
     const balance = await this.balanceService.findOneByUserId(userId);
     const isAdmin = (roleId === Role.admin) ? 1 : 0;
 
-    const { updateBalanceDto, daysRequested } = await this.validateCreateByHR(balance, typeId, startDateFormatted, endDateFormatted);
+    const { requestUpdateBalance, updateBalanceDto, daysRequested } = await this.validateCreateByHR(balance, typeId, startDateFormatted, endDateFormatted);
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -48,7 +49,10 @@ export class RequestService {
 
     try {
       const { raw : { insertId } } = await queryRunner.manager.insert(Request, createRequestDto);
-      await queryRunner.manager.update(Balance, balance.id, updateBalanceDto);
+
+      if (requestUpdateBalance === RequestUpdateBalance.yes) {
+        await queryRunner.manager.update(Balance, balance.id, updateBalanceDto);
+      }
 
       daysRequested.map( async(day: Date) => {
         day.setUTCHours(6, 0, 0, 0);
@@ -318,11 +322,13 @@ export class RequestService {
         numberDaysRequested
       );
 
+      const requestUpdateBalance = RequestUpdateBalance.yes;
+
       if (updateBalanceDto.error) {
         throw new CustomRpcException(updateBalanceDto.error, HttpStatus.BAD_REQUEST, 'Bad Request');
       }
 
-      return { updateBalanceDto, daysRequested };
+      return { requestUpdateBalance, updateBalanceDto, daysRequested };
     }
 
     if (typeId === RequestType.vacation) {
@@ -335,12 +341,35 @@ export class RequestService {
         numberDaysRequested
       );
 
+      const requestUpdateBalance = RequestUpdateBalance.yes;
+
       if (updateBalanceDto.error) {
         throw new CustomRpcException(updateBalanceDto.error, HttpStatus.BAD_REQUEST, 'Bad Request');
       }
 
-      return { updateBalanceDto, daysRequested };
+      return { requestUpdateBalance, updateBalanceDto, daysRequested };
     }
+
+    if (typeId === RequestType.licenciaExtraordinaria) {
+      const daysRequested = daysBetweenDatesNoWeekends(startDate, endDate);
+      const requestUpdateBalance = RequestUpdateBalance.no;
+
+      return { requestUpdateBalance, undefined, daysRequested };
+    }
+
+    if (typeId === RequestType.medicalLeave) {
+      const daysRequested = daysBetweenDates(startDate, endDate);
+      const requestUpdateBalance = RequestUpdateBalance.no;
+
+      return { requestUpdateBalance, undefined, daysRequested };
+    }    
+
+    if (typeId === RequestType.permisoSinGoce) {
+      const daysRequested = daysBetweenDatesNoWeekends(startDate, endDate);
+      const requestUpdateBalance = RequestUpdateBalance.no;
+
+      return { requestUpdateBalance, undefined, daysRequested };
+    }    
   }
 
   async validateCreateByUser(balance: Balance, typeId: number, startDate: Date, endDate: Date): Promise<any> {
