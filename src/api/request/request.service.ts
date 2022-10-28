@@ -388,7 +388,7 @@ export class RequestService {
       });
       
       if (numberDaysRequested > MaxDaysRequested.compDays) {
-        throw new CustomRpcException(`Amount of comp days must not be greater than ${MaxDaysRequested.compDays}`, 
+        throw new CustomRpcException(`Amount of comp days must not be greater than ${MaxDaysRequested.compDays} days`, 
         HttpStatus.BAD_REQUEST, 'Bad Request');
       }
       if (daysAfterToday < DaysAfterRequest.minDaysCompDays ||
@@ -424,12 +424,12 @@ export class RequestService {
       });
 
       if (numberDaysRequested > MaxDaysRequested.vacations) {
-        throw new CustomRpcException(`Amount of vacations must not be greater than ${MaxDaysRequested.vacations}`, 
+        throw new CustomRpcException(`Amount of vacations must not be greater than ${MaxDaysRequested.vacations} days`, 
         HttpStatus.BAD_REQUEST, 'Bad Request');
       }
       if (daysAfterToday < DaysAfterRequest.minDaysVacations ||
         startDate > maxDateAfter) {
-          throw new CustomRpcException(`Vacations should be requested ${DaysAfterRequest.minDaysVacations} days before
+          throw new CustomRpcException(`Vacations should be requested ${DaysAfterRequest.minDaysVacations} 
           days before and no more than ${DaysAfterRequest.maxMonths} months later`, HttpStatus.BAD_REQUEST, 'Bad Request');
       }
       if (overDaysLimit) {
@@ -465,12 +465,12 @@ export class RequestService {
       const daysAfterToday = diffrenceBetweenDates(today, startDate);
 
       if (numberDaysRequested > MaxDaysRequested.compDays) {
-        throw new CustomRpcException(`Amount of comp days must not be greater than ${MaxDaysRequested.compDays}`
+        throw new CustomRpcException(`Amount of comp days must not be greater than ${MaxDaysRequested.compDays} days`
         , HttpStatus.BAD_REQUEST, 'Bad Request');
       }
       if (daysAfterToday < DaysAfterRequest.minDaysCompDays ||
         startDate > maxDateAfter) {
-        throw new CustomRpcException(`Comp days should be requested ${DaysAfterRequest.minDaysCompDays} before`
+        throw new CustomRpcException(`Comp days should be requested ${DaysAfterRequest.minDaysCompDays} days before`
         , HttpStatus.BAD_REQUEST, 'Bad Request');
       }
 
@@ -494,11 +494,11 @@ export class RequestService {
       const daysAfterToday = diffrenceBetweenDates(today, startDate);
       
       if (numberDaysRequested > MaxDaysRequested.vacations) {
-        throw new CustomRpcException(`Amount of vacations must not be greater than ${MaxDaysRequested.vacations}`
+        throw new CustomRpcException(`Amount of vacations must not be greater than ${MaxDaysRequested.vacations} days`
         , HttpStatus.BAD_REQUEST, 'Bad Request');
       }
       if (daysAfterToday < DaysAfterRequest.minDaysVacations) {
-        throw new CustomRpcException(`Comp days should be requested ${DaysAfterRequest.minDaysVacations} before`
+        throw new CustomRpcException(`Vacations should be requested ${DaysAfterRequest.minDaysVacations} days before`
         , HttpStatus.BAD_REQUEST, 'Bad Request');
       }
       
