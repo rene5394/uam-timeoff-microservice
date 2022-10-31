@@ -18,6 +18,7 @@ import { BalanceOperation } from '../../common/enums/balanceOperation.enum';
 import { UpdateBalanceDto } from '../balance/dto/update-balance.dto';
 import { ApproveStatus } from '../../common/enums/approveStatus.enum';
 import { CustomRpcException } from 'src/common/exception/custom-rpc.exception';
+import { RequestDay } from '../request-day/entities/request-day.entity';
 
 @Injectable()
 export class TransactionService {
@@ -36,7 +37,7 @@ export class TransactionService {
   async create(roleId: number, hr: number, createTransactionDto: CreateTransactionDto): Promise<Transaction> {
     const { requestId, transactionStatusId } = createTransactionDto;
     const request = await this.requestService.findOne(requestId);
-    const { updateRequestDTO, updateBalance } = await this.validateCreate(
+    const { updateRequestDTO, returnBalance } = await this.validateCreate(
       hr,
       roleId,
       request,
@@ -51,7 +52,7 @@ export class TransactionService {
       const transaction = await queryRunner.manager.save(Transaction, createTransactionDto)
       await queryRunner.manager.update(Request, requestId, updateRequestDTO);
       
-      if (updateBalance) {
+      if (returnBalance) {
         const numberDaysRequested = await this.requestDayService.countByRequestId(requestId);
         const balance = await this.balanceService.findOneByUserId(request.userId);
         let updateBalanceDto: UpdateBalanceDto;
@@ -71,6 +72,7 @@ export class TransactionService {
           );
         }
 
+        await queryRunner.manager.delete(RequestDay, { requestId });
         await queryRunner.manager.update(Balance, balance.id, updateBalanceDto);
       }
 
@@ -132,7 +134,7 @@ export class TransactionService {
         request.coachApproval === ApproveStatus.notApproved) {
         const updateRequestDTO = { coachApproval: 1 } as UpdateRequestDto;
 
-        return { updateRequestDTO, updateBalance: false };
+        return { updateRequestDTO, returnBalance: false };
       }
 
       throw new CustomRpcException('Unauthorized to make this transaction'
@@ -145,7 +147,7 @@ export class TransactionService {
         request.hrApproval === ApproveStatus.notApproved) {
         const updateRequestDTO = { hrApproval: 1, statusId: RequestStatus.approved } as UpdateRequestDto;
 
-        return { updateRequestDTO, updateBalance: false };
+        return { updateRequestDTO, returnBalance: false };
       }
 
       throw new CustomRpcException('Unauthorized to make this transaction'
@@ -156,7 +158,7 @@ export class TransactionService {
         request.statusId === RequestStatus.pending) {
         const updateRequestDTO = { coachApproval: 0, statusId: RequestStatus.denied } as UpdateRequestDto;
 
-        return { updateRequestDTO, updateBalance: true };
+        return { updateRequestDTO, returnBalance: true };
       }
 
       throw new CustomRpcException('Unauthorized to make this transaction'
@@ -168,7 +170,7 @@ export class TransactionService {
         request.coachApproval === ApproveStatus.approved) {
         const updateRequestDTO = { hrApproval: 0, statusId: RequestStatus.denied } as UpdateRequestDto;
 
-        return { updateRequestDTO, updateBalance: true };
+        return { updateRequestDTO, returnBalance: true };
       }
 
       throw new CustomRpcException('Unauthorized to make this transaction'
@@ -180,7 +182,7 @@ export class TransactionService {
         request.hrApproval === ApproveStatus.approved) {
         const updateRequestDTO = { statusId: RequestStatus.cancelled } as UpdateRequestDto;
 
-        return { updateRequestDTO, updateBalance: true };
+        return { updateRequestDTO, returnBalance: true };
       }
 
       throw new CustomRpcException('Unauthorized to make this transaction'
