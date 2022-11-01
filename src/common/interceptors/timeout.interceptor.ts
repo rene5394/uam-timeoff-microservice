@@ -14,8 +14,8 @@ export class TimeOutInterceptor implements NestInterceptor {
           throw new CustomRpcException('Timeout error occurred',
             HttpStatus.INTERNAL_SERVER_ERROR, 'Internal Server Error');
         }
-        throw new CustomRpcException(`Error occurred ${err.message}`,
-          HttpStatus.INTERNAL_SERVER_ERROR, 'Internal Server Error');
+        
+        throw err;
       })
     );
   }
