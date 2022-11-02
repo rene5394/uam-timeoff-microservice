@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { BalanceModule } from './api/balance/balance.module';
 import { BalanceTransactionModule } from './api/balance-transaction/balance-transaction.module';
 import { DataSource } from 'typeorm';
@@ -25,6 +26,7 @@ import { TransactionStatusModule } from './api/transaction-status/transaction-st
       autoLoadEntities: true,
       synchronize: false
     }),
+    ScheduleModule.forRoot(),
     BalanceModule,
     BalanceTransactionModule,
     StatusModule,
