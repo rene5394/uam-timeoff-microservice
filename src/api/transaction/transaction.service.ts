@@ -128,8 +128,8 @@ export class TransactionService {
   }
 
   async validateCreate(hr: number, roleId: number, request: Request, transactionStatusId: number): Promise<any> {
-    if (transactionStatusId === TransactionStatus.approvedByCoach) {
-      if ((roleId === Role.coach || roleId === Role.jrCoach) &&
+    if (transactionStatusId === TransactionStatus.approvedByTL) {
+      if ((roleId === Role.admin || roleId === Role.coach || roleId === Role.jrCoach) &&
         request.statusId === RequestStatus.pending &&
         request.coachApproval === ApproveStatus.notApproved) {
         const updateRequestDTO = { coachApproval: 1 } as UpdateRequestDto;
@@ -153,8 +153,8 @@ export class TransactionService {
       throw new CustomRpcException('Unauthorized to make this transaction'
       , HttpStatus.FORBIDDEN, 'Unauthorized');
     }
-    if (transactionStatusId === TransactionStatus.deniedByCoach) {
-      if ((roleId === Role.coach || roleId === Role.jrCoach) &&
+    if (transactionStatusId === TransactionStatus.deniedByTL) {
+      if ((roleId === Role.admin || roleId === Role.coach || roleId === Role.jrCoach) &&
         request.statusId === RequestStatus.pending) {
         const updateRequestDTO = { coachApproval: 0, statusId: RequestStatus.denied } as UpdateRequestDto;
 

@@ -91,7 +91,7 @@ export class RequestService {
       transactionStatus = TransactionStatus.createdByAdmin;
       createRequestDto.coachApproval = 1;
     } if (roleId === Role.coach || roleId === Role.jrCoach) {
-      transactionStatus = TransactionStatus.createdByCoach;
+      transactionStatus = TransactionStatus.createdByTL;
       createRequestDto.coachApproval = 1;
     } if (roleId === Role.va) {
       transactionStatus = TransactionStatus.createdByBP;
