@@ -7,6 +7,7 @@ import { CreateBalanceTransactionDto } from './dto/create-balance-transaction.dt
 import { UpdateBalanceDto } from '../balance/dto/update-balance.dto';
 import { BalanceTransaction } from './entities/balance-transaction.entity';
 import { Balance } from '../balance/entities/balance.entity';
+import { CreateBulkVacationTransactionDto } from './dto/create-bulk-vacation-transaction.dto';
 
 @Injectable()
 export class BalanceTransactionService {
@@ -59,6 +60,43 @@ export class BalanceTransactionService {
     }
     
     return balanceTransaction;
+  }
+
+  async createBulkVacation(createBulkVacationTransactionDto: CreateBulkVacationTransactionDto) {
+    const userIds = createBulkVacationTransactionDto.userIds;
+    const typeId = createBulkVacationTransactionDto.typeId;
+    const operation = createBulkVacationTransactionDto.operation;
+    const amount = createBulkVacationTransactionDto.amount;
+    const updatedBy = createBulkVacationTransactionDto.updatedBy;
+    
+    const balances =  await this.balanceService.findAll(null, userIds);
+
+    const balanceIds: any = [];
+    balances.map((balance: Balance) => balanceIds.push(balance.id));
+
+    const vacationtransactions = await Promise.all(
+      balanceIds.map( async(balanceId: number) => {
+        const createBalanceTransactionDto = {
+          balanceId,
+          typeId,
+          operation,
+          amount,
+          updatedBy
+        } as CreateBalanceTransactionDto;
+
+        const updateBalanceDto = await this.balanceService.validateVacationsUpdate(
+          balanceId,
+          operation,
+          amount
+        ) as UpdateBalanceDto;
+
+        await this.transactionCreateBalanceTransaction(
+          balanceId,
+          createBalanceTransactionDto,
+          updateBalanceDto
+        );
+      })
+    );
   }
 
   async findAll(): Promise<BalanceTransaction[]> {
