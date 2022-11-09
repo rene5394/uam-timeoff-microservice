@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource ,Repository } from 'typeorm';
 import { BalanceService } from '../balance/balance.service';
@@ -8,6 +8,7 @@ import { UpdateBalanceDto } from '../balance/dto/update-balance.dto';
 import { BalanceTransaction } from './entities/balance-transaction.entity';
 import { Balance } from '../balance/entities/balance.entity';
 import { CreateBulkVacationTransactionDto } from './dto/create-bulk-vacation-transaction.dto';
+import { CustomRpcException } from 'src/common/exception/custom-rpc.exception';
 
 @Injectable()
 export class BalanceTransactionService {
@@ -68,12 +69,22 @@ export class BalanceTransactionService {
     const operation = createBulkVacationTransactionDto.operation;
     const amount = createBulkVacationTransactionDto.amount;
     const updatedBy = createBulkVacationTransactionDto.updatedBy;
+
+   if (userIds.length === 0) {
+    throw new CustomRpcException('UserIds not defined'
+    , HttpStatus.NOT_FOUND, 'Not Found');
+   }
     
     const balances =  await this.balanceService.findAll(null, userIds);
 
+    if (balances.length === 0) {
+      throw new CustomRpcException('Balances not found'
+      , HttpStatus.NOT_FOUND, 'Not Found');
+     }
+
     const balanceIds: any = [];
     balances.map((balance: Balance) => balanceIds.push(balance.id));
-
+    
     const vacationtransactions = await Promise.all(
       balanceIds.map( async(balanceId: number) => {
         const createBalanceTransactionDto = {
@@ -97,6 +108,8 @@ export class BalanceTransactionService {
         );
       })
     );
+
+    return vacationtransactions;
   }
 
   async findAll(): Promise<BalanceTransaction[]> {
