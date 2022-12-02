@@ -24,7 +24,10 @@ import { TransactionStatusModule } from './api/transaction-status/transaction-st
       database: process.env.DATABASE || 'timeoff',
       entities: [],
       autoLoadEntities: true,
-      synchronize: false
+      synchronize: false,
+      extra : {
+        connectionLimit: 100
+      }
     }),
     ScheduleModule.forRoot(),
     BalanceModule,
