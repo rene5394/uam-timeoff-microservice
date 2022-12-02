@@ -47,3 +47,10 @@ export function diffrenceBetweenDatesNoWeekends(startDate: Date, endDate: Date) 
 
   return weekdays;
 }
+
+export function getUTCDifference(): number {
+  const date = new Date();
+  const differenceUTC = date.getTimezoneOffset();
+
+  return differenceUTC;
+}
