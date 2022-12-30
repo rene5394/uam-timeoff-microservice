@@ -130,7 +130,7 @@ export class RequestService {
     }
   }
 
-  async findAll(status: string, page: number, userIds: any[], startDate: Date, endDate: Date) {
+  async findAll(status: string, transactionStatus: string, page: number, userIds: any[], startDate: Date, endDate: Date) {
     const query = this.dataSource.getRepository(Request)
       .createQueryBuilder("requests")
       .leftJoinAndSelect("requests.transactions", "transactions");
@@ -144,12 +144,34 @@ export class RequestService {
       }
     });
 
+    const transactionKeys = Object.keys(TransactionStatus);
+    let transactionStatusId = 0;
+
+    Object.keys(TransactionStatus).forEach(key => {
+      if (key === transactionStatus) {
+        transactionStatusId = TransactionStatus[key];
+      }
+    });
+
     if (userIds) {
       query.where("requests.userId IN (:userIds)", { userIds });
     }
 
     if (statusId) {
       query.where("requests.statusId = :statusId", { statusId });
+    }
+
+    if (transactionStatusId) {
+      if (transactionStatusId === TransactionStatus.createdByBP ||
+        transactionStatusId === TransactionStatus.createdByTL ||
+        transactionStatusId === TransactionStatus.createdByAdmin ||
+        transactionStatusId === TransactionStatus.createdByHR) {
+        query.leftJoinAndSelect("requests.transactions", "nextTransactions", "nextTransactions.createdAt > transactions.createdAt")
+          .where("nextTransactions.transactionStatusId = :transactionStatusId", { transactionStatusId });
+      } else {
+        query.leftJoinAndSelect("requests.transactions", "nextTransactions", "nextTransactions.createdAt > transactions.createdAt")
+          .where("nextTransactions.transactionStatusId = :transactionStatusId", { transactionStatusId });
+      }
     }
 
     if (startDate) {
@@ -181,7 +203,7 @@ export class RequestService {
       query.getMany(),
       query.getCount()
     ]);
-    
+        
     return { list, count };
   }
 
