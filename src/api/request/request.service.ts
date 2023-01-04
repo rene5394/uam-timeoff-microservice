@@ -158,20 +158,12 @@ export class RequestService {
     }
 
     if (statusId) {
-      query.where("requests.statusId = :statusId", { statusId });
+      query.andWhere("requests.statusId = :statusId", { statusId });
     }
 
     if (transactionStatusId) {
-      if (transactionStatusId === TransactionStatus.createdByBP ||
-        transactionStatusId === TransactionStatus.createdByTL ||
-        transactionStatusId === TransactionStatus.createdByAdmin ||
-        transactionStatusId === TransactionStatus.createdByHR) {
-        query.leftJoinAndSelect("requests.transactions", "nextTransactions", "nextTransactions.createdAt > transactions.createdAt")
-          .where("nextTransactions.transactionStatusId = :transactionStatusId", { transactionStatusId });
-      } else {
-        query.leftJoinAndSelect("requests.transactions", "nextTransactions", "nextTransactions.createdAt > transactions.createdAt")
-          .where("nextTransactions.transactionStatusId = :transactionStatusId", { transactionStatusId });
-      }
+        query.andWhere("transactions.id IN (SELECT MAX(id) FROM transactions WHERE requestId = requests.id)")
+          .andWhere("transactions.transactionStatusId = :transactionStatusId", { transactionStatusId });
     }
 
     if (startDate) {
