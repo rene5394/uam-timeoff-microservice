@@ -9,7 +9,9 @@ export class RequestController {
 
   @MessagePattern('createRequest')
   async create(@Payload() createRequestDto: CreateRequestDto) {
-    return await this.requestService.create(createRequestDto);
+    const requestId = await this.requestService.create(createRequestDto);
+
+    return await this.requestService.findOne(requestId);
   }
 
   @MessagePattern('createUserIdRequest')
