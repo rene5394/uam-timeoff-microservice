@@ -31,7 +31,7 @@ export class RequestService {
     private readonly requestDayService: RequestDayService
   ) {}
 
-  async create(createRequestDto: CreateRequestDto): Promise<Request> {
+  async create(createRequestDto: CreateRequestDto): Promise<number> {
     const { userId, typeId, startDate, endDate, roleId } = createRequestDto;
     const startDateFormatted = new Date(startDate);
     const endDateFormatted = new Date(endDate);
