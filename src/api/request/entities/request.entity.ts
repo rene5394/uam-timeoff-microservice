@@ -9,6 +9,9 @@ export class Request {
     @Column({ type: 'smallint', nullable: false })
     userId: number;
 
+    @Column({ type: 'varchar', nullable: true })
+    comment: string;
+
     @Column({ type: 'smallint', nullable: false })
     createdBy: number;
 
