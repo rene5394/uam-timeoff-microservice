@@ -5,5 +5,6 @@ export class CreateBalanceTransactionDto {
   typeId: number;
   operation: BalanceOperation;
   amount: number;
+  comment: string;
   updatedBy: number;
 }

@@ -54,14 +54,17 @@ export class BalanceService {
     return await this.balanceRepository.findOne({ where: { userId: userId } });
   }
 
-  async update(id: number, updatedBy: number, updateBalanceDto: UpdateBalanceDto) {
+  async update(id: number, updatedBy: number, updateBalanceDto: UpdateBalanceDto) {    
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
       const balance = await this.balanceRepository.findOne({ where: { id: id } });
-      await queryRunner.manager.update(Balance, id, updateBalanceDto);
+      await queryRunner.manager.update(Balance, id, {
+        compDays: updateBalanceDto.compDays,
+        vacationDays: updateBalanceDto.vacationDays
+      });
       await queryRunner.commitTransaction();
 
       if (balance.compDays !== updateBalanceDto.compDays) {
@@ -74,6 +77,7 @@ export class BalanceService {
           typeId: RequestType.compDay,
           operation,
           amount: Math.abs(updateBalanceDto.compDays - balance.compDays),
+          comment: updateBalanceDto.comment,
           updatedBy
         });
       } if (balance.vacationDays !== updateBalanceDto.vacationDays) {
@@ -86,12 +90,15 @@ export class BalanceService {
           typeId: RequestType.vacation,
           operation,
           amount: Math.abs(updateBalanceDto.vacationDays - balance.vacationDays),
+          comment: updateBalanceDto.comment,
           updatedBy
         });
       }
 
       return id;
     } catch (error) {
+      console.log('err', error);
+      
       await queryRunner.rollbackTransaction();
 
       throw new CustomRpcException('Error executing update balance'

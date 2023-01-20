@@ -17,6 +17,9 @@ export class BalanceTransaction {
     @Column({ type: 'tinyint', nullable: false })
     amount: number;
 
+    @Column({ type: 'varchar', nullable: true })
+    comment: string;
+
     @Column({ type: 'smallint', nullable: false })
     updatedBy: number;
 
