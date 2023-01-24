@@ -33,6 +33,7 @@ export class RequestService {
 
   async create(createRequestDto: CreateRequestDto): Promise<number> {
     const { userId, typeId, startDate, endDate, roleId } = createRequestDto;
+    
     const startDateFormatted = new Date(startDate);
     const endDateFormatted = new Date(endDate);
     startDateFormatted.setUTCHours(0, 0, 0, 0);
@@ -62,6 +63,51 @@ export class RequestService {
         requestId: insertId,
         createdBy: userId,
         transactionStatusId: TransactionStatus.createdByHR
+      });
+
+      await queryRunner.commitTransaction();
+      
+      return insertId;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+
+      throw new CustomRpcException('Error executing create request SQL transaction'
+      , HttpStatus.INTERNAL_SERVER_ERROR, 'Internal Server Error');
+    }
+  }
+
+  async createByCoach(createRequestDto: CreateRequestDto): Promise<number> {
+    const { userId, typeId, startDate, endDate, roleId } = createRequestDto;
+    
+    const startDateFormatted = new Date(startDate);
+    const endDateFormatted = new Date(endDate);
+    startDateFormatted.setUTCHours(0, 0, 0, 0);
+    endDateFormatted.setUTCHours(23, 59, 59, 999);
+
+    const balance = await this.balanceService.findOneByUserId(userId);
+    const isAdmin = (roleId === Role.admin) ? 1 : 0;
+
+    const { requestUpdateBalance, updateBalanceDto, daysRequested } = await this.validateCreateByHR(balance, typeId, startDateFormatted, endDateFormatted);
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const { raw : { insertId } } = await queryRunner.manager.insert(Request, createRequestDto);
+
+      if (requestUpdateBalance === RequestUpdateBalance.yes) {
+        await queryRunner.manager.update(Balance, balance.id, updateBalanceDto);
+      }
+
+      daysRequested.map( async(day: Date) => {
+        day.setUTCHours(6, 0, 0, 0);
+        await queryRunner.manager.insert(RequestDay, { requestId: insertId, day, admin: isAdmin} );
+      });
+      await queryRunner.manager.insert(Transaction, { 
+        requestId: insertId,
+        createdBy: userId,
+        transactionStatusId: TransactionStatus.createdByTL
       });
 
       await queryRunner.commitTransaction();

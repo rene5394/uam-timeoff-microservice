@@ -13,6 +13,8 @@ export class TypeService {
   async findAll(app: string): Promise<Type[]> {    
     if (app === 'true') {
       return await this.typeRepository.find({ where: { app: 1 } })
+    } if (app === 'false') {
+      return await this.typeRepository.find({ where: { app: 0 } })
     }
 
     return await this.typeRepository.find();

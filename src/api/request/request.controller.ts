@@ -14,8 +14,15 @@ export class RequestController {
     return await this.requestService.findOne(requestId);
   }
 
-  @MessagePattern('createUserIdRequest')
-  async createByUserId(@Payload() createRequestDto: CreateRequestDto) {
+  @MessagePattern('createCoachRequest')
+  async createByCoach(@Payload() createRequestDto: CreateRequestDto) {
+    const requestId = await this.requestService.createByCoach(createRequestDto);
+
+    return await this.requestService.findOne(requestId);
+  }
+
+  @MessagePattern('createUserRequest')
+  async createByUser(@Payload() createRequestDto: CreateRequestDto) {
     const requestId = await this.requestService.createByUser(createRequestDto);
 
     return await this.requestService.findOne(requestId);
