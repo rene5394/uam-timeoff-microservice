@@ -5,5 +5,7 @@ export class CreateBulkVacationTransactionDto {
   typeId: number;
   operation: BalanceOperation;
   amount: number;
+  oldBalance: number;
+  newBalance: number;
   updatedBy: number;
 }

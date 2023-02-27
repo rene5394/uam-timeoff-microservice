@@ -17,6 +17,12 @@ export class BalanceTransaction {
     @Column({ type: 'tinyint', nullable: false })
     amount: number;
 
+    @Column({ type: 'tinyint', nullable: false })
+    oldBalance: number;
+
+    @Column({ type: 'tinyint', nullable: false })
+    newBalance: number;
+
     @Column({ type: 'varchar', nullable: true })
     comment: string;
 
