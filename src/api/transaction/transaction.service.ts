@@ -19,6 +19,7 @@ import { UpdateBalanceDto } from '../balance/dto/update-balance.dto';
 import { ApproveStatus } from '../../common/enums/approveStatus.enum';
 import { CustomRpcException } from 'src/common/exception/custom-rpc.exception';
 import { RequestDay } from '../request-day/entities/request-day.entity';
+import { BalanceTransaction } from '../balance-transaction/entities/balance-transaction.entity';
 
 @Injectable()
 export class TransactionService {
@@ -53,6 +54,8 @@ export class TransactionService {
       await queryRunner.manager.update(Request, requestId, updateRequestDTO);
       
       if (returnBalance) {
+        let oldBalance = null;
+        let newBalance = null;
         const numberDaysRequested = await this.requestDayService.countByRequestId(requestId);
         const balance = await this.balanceService.findOneByUserId(request.userId);
         let updateBalanceDto: UpdateBalanceDto;
@@ -63,6 +66,8 @@ export class TransactionService {
             BalanceOperation.addition,
             numberDaysRequested
           );
+          oldBalance = balance.compDays;
+          newBalance = updateBalanceDto.compDays;
         }
         if (request.typeId == RequestType.vacation) {
           updateBalanceDto = await this.balanceService.validateVacationsUpdate(
@@ -70,10 +75,21 @@ export class TransactionService {
             BalanceOperation.addition,
             numberDaysRequested
           );
+          oldBalance = balance.vacationDays;
+          newBalance = updateBalanceDto.vacationDays;
         }
 
         await queryRunner.manager.delete(RequestDay, { requestId });
         await queryRunner.manager.update(Balance, balance.id, updateBalanceDto);
+        await queryRunner.manager.save(BalanceTransaction, {
+          balanceId: balance.id,
+          typeId: request.typeId,
+          operation: BalanceOperation.addition,
+          amount: numberDaysRequested,
+          oldBalance: oldBalance,
+          newBalance: newBalance,
+          comment: 'Request denied or canceled'
+        });
       }
 
       await queryRunner.commitTransaction();
