@@ -12,6 +12,7 @@ import { RequestType } from '../../common/enums/requestType.enum';
 import { daysBetweenDates, daysBetweenDatesNoWeekends, diffrenceBetweenDates } from '../../common/utils/timeValidation';
 import { RequestDayService } from '../request-day/request-day.service';
 import { RequestDay } from '../request-day/entities/request-day.entity';
+import { BalanceTransaction } from '../balance-transaction/entities/balance-transaction.entity';
 import { Role } from '../../common/enums/role.enum';
 import { Transaction } from '../transaction/entities/transaction.entity';
 import { TransactionStatus } from 'src/common/enums/transactionStatus.enum';
@@ -53,6 +54,31 @@ export class RequestService {
 
       if (requestUpdateBalance === RequestUpdateBalance.yes) {
         await queryRunner.manager.update(Balance, balance.id, updateBalanceDto);
+
+        const amount = daysRequested.length;
+        let oldBalance = null;
+        let newBalance = null;
+
+        if (createRequestDto.typeId === RequestType.compDay) {
+          oldBalance = balance.compDays;
+          newBalance = updateBalanceDto.compDays;
+        } if (createRequestDto.typeId === RequestType.vacation) {
+          oldBalance = balance.vacationDays;
+          newBalance = updateBalanceDto.vacationDays;
+        }
+
+        await queryRunner.manager.save(
+          BalanceTransaction, {
+            balanceId: balance.id,
+            typeId: typeId,
+            operation: BalanceOperation.substraction,
+            amount: amount,
+            oldBalance: oldBalance,
+            newBalance: newBalance,
+            comment: 'Request Created by admin',
+            updatedBy: createRequestDto.createdBy
+          }
+        );
       }
 
       daysRequested.map( async(day: Date) => {
@@ -98,6 +124,31 @@ export class RequestService {
 
       if (requestUpdateBalance === RequestUpdateBalance.yes) {
         await queryRunner.manager.update(Balance, balance.id, updateBalanceDto);
+
+        const amount = daysRequested.length;
+        let oldBalance = null;
+        let newBalance = null;
+
+        if (createRequestDto.typeId === RequestType.compDay) {
+          oldBalance = balance.compDays;
+          newBalance = updateBalanceDto.compDays;
+        } if (createRequestDto.typeId === RequestType.vacation) {
+          oldBalance = balance.vacationDays;
+          newBalance = updateBalanceDto.vacationDays;
+        }
+
+        await queryRunner.manager.save(
+          BalanceTransaction, {
+            balanceId: balance.id,
+            typeId: typeId,
+            operation: BalanceOperation.substraction,
+            amount: amount,
+            oldBalance: oldBalance,
+            newBalance: newBalance,
+            comment: 'Request created  by coach',
+            updatedBy: createRequestDto.createdBy
+          }
+        );
       }
 
       daysRequested.map( async(day: Date) => {
@@ -154,6 +205,31 @@ export class RequestService {
     try {
       const { raw : { insertId } } = await queryRunner.manager.insert(Request, createRequestDto);
       await queryRunner.manager.update(Balance, balance.id, updateBalanceDto);
+
+      const amount = daysRequested.length;
+      let oldBalance = null;
+      let newBalance = null;
+
+      if (createRequestDto.typeId === RequestType.compDay) {
+        oldBalance = balance.compDays;
+        newBalance = updateBalanceDto.compDays;
+      } if (createRequestDto.typeId === RequestType.vacation) {
+        oldBalance = balance.vacationDays;
+        newBalance = updateBalanceDto.vacationDays;
+      }
+
+      await queryRunner.manager.save(
+        BalanceTransaction, {
+          balanceId: balance.id,
+          typeId: typeId,
+          operation: BalanceOperation.substraction,
+          amount: amount,
+          oldBalance: oldBalance,
+          newBalance: newBalance,
+          comment: 'Request created  by user',
+          updatedBy: createRequestDto.createdBy
+        }
+      );
       
       daysRequested.map( async(day: Date) => {
         day.setUTCHours(6, 0, 0, 0);
