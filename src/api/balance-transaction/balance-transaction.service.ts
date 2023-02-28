@@ -21,6 +21,7 @@ export class BalanceTransactionService {
 
   async create(createBalanceTransactionDto: CreateBalanceTransactionDto): Promise<BalanceTransaction> {
     const { balanceId, typeId, operation} = createBalanceTransactionDto;
+    const balance = await this.balanceService.findOne(balanceId);
 
     let balanceTransaction: any;
 
@@ -34,7 +35,7 @@ export class BalanceTransactionService {
       );
 
       balanceTransaction = await this.transactionCreateBalanceTransaction(
-        balanceId,
+        balance,
         createBalanceTransactionDto,
         updateBalanceDto
       );
@@ -50,7 +51,7 @@ export class BalanceTransactionService {
       );
 
       balanceTransaction = await this.transactionCreateBalanceTransaction(
-        balanceId,
+        balance,
         createBalanceTransactionDto,
         updateBalanceDto
       );
@@ -75,34 +76,32 @@ export class BalanceTransactionService {
     , HttpStatus.NOT_FOUND, 'Not Found');
    }
     
-    const balances =  await this.balanceService.findAll(null, userIds);
+    const balances = await this.balanceService.findAll(null, userIds);
 
     if (balances.length === 0) {
       throw new CustomRpcException('Balances not found'
       , HttpStatus.NOT_FOUND, 'Not Found');
      }
-
-    const balanceIds: any = [];
-    balances.map((balance: Balance) => balanceIds.push(balance.id));
     
     const vacationtransactions = await Promise.all(
-      balanceIds.map( async(balanceId: number) => {
+      balances.map( async(balance: Balance) => {
         const createBalanceTransactionDto = {
-          balanceId,
+          balanceId: balance.id,
           typeId,
           operation,
           amount,
+          comment: 'Yearly or six months vacations',
           updatedBy
         } as CreateBalanceTransactionDto;
 
         const updateBalanceDto = await this.balanceService.validateVacationsUpdate(
-          balanceId,
+          balance.id,
           operation,
           amount
         ) as UpdateBalanceDto;
 
         await this.transactionCreateBalanceTransaction(
-          balanceId,
+          balance,
           createBalanceTransactionDto,
           updateBalanceDto
         );
@@ -130,7 +129,7 @@ export class BalanceTransactionService {
   }
 
   async transactionCreateBalanceTransaction(
-    balanceId: number,
+    balance: Balance,
     createBalanceTransactionDto: CreateBalanceTransactionDto,
     updateBalanceDto: UpdateBalanceDto
   ): Promise<any> {
@@ -142,9 +141,17 @@ export class BalanceTransactionService {
     try {
       await queryRunner.manager.update(
         Balance,
-        balanceId,
+        balance.id,
         updateBalanceDto
       );
+
+      if (createBalanceTransactionDto.typeId = BalanceType.compDays) {
+        createBalanceTransactionDto.oldBalance = balance.compDays;
+        createBalanceTransactionDto.newBalance = updateBalanceDto.compDays;
+      } if (createBalanceTransactionDto.typeId = BalanceType.vacations) {
+        createBalanceTransactionDto.oldBalance = balance.vacationDays;
+        createBalanceTransactionDto.newBalance = updateBalanceDto.vacationDays;
+      }
 
       const balanceTransaction = await queryRunner.manager.save(
         BalanceTransaction, 

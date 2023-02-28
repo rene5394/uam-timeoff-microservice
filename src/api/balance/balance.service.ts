@@ -77,6 +77,8 @@ export class BalanceService {
           typeId: RequestType.compDay,
           operation,
           amount: Math.abs(updateBalanceDto.compDays - balance.compDays),
+          oldBalance: balance.compDays,
+          newBalance: updateBalanceDto.compDays,
           comment: updateBalanceDto.comment,
           updatedBy
         });
@@ -90,6 +92,8 @@ export class BalanceService {
           typeId: RequestType.vacation,
           operation,
           amount: Math.abs(updateBalanceDto.vacationDays - balance.vacationDays),
+          oldBalance: balance.vacationDays,
+          newBalance: updateBalanceDto.vacationDays,
           comment: updateBalanceDto.comment,
           updatedBy
         });
