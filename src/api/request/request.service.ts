@@ -202,7 +202,6 @@ export class RequestService {
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
-    try {
       const { raw : { insertId } } = await queryRunner.manager.insert(Request, createRequestDto);
       await queryRunner.manager.update(Balance, balance.id, updateBalanceDto);
 
@@ -244,12 +243,6 @@ export class RequestService {
       await queryRunner.commitTransaction();
       
       return insertId;
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      
-      throw new CustomRpcException('Error executing create request SQL transaction'
-      , HttpStatus.INTERNAL_SERVER_ERROR, 'Internal Server Error');
-    }
   }
 
   async findAll(status: string, transactionStatus: string, page: number, userIds: any[], startDate: Date, endDate: Date) {
