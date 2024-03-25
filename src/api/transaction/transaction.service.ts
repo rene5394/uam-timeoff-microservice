@@ -1,4 +1,4 @@
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, Req } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, DataSource, Repository } from 'typeorm';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
@@ -50,6 +50,7 @@ export class TransactionService {
     await queryRunner.startTransaction();
 
     try {
+      console.log('updateRequestDTO', updateRequestDTO, returnBalance);
       const transaction = await queryRunner.manager.save(Transaction, createTransactionDto)
       await queryRunner.manager.update(Request, requestId, updateRequestDTO);
       
@@ -96,6 +97,7 @@ export class TransactionService {
 
       return transaction;
     } catch (err) {
+      console.log('Wr', err);
       await queryRunner.rollbackTransaction();
 
       throw new CustomRpcException('Error executing create transaction SQL transaction', HttpStatus.INTERNAL_SERVER_ERROR, 'Internal Server Error');
@@ -197,6 +199,12 @@ export class TransactionService {
         request.statusId === RequestStatus.approved &&
         request.hrApproval === ApproveStatus.approved) {
         const updateRequestDTO = { statusId: RequestStatus.cancelled } as UpdateRequestDto;
+        
+        if (request.typeId == RequestType.licenciaExtraordinaria ||
+            request.typeId == RequestType.medicalLeave ||
+            request.typeId == RequestType.permisoSinGoce) {
+          return { updateRequestDTO, returnBalance: false };
+        }
 
         return { updateRequestDTO, returnBalance: true };
       }
